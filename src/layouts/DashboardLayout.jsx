@@ -1,64 +1,111 @@
-import { Outlet, Link } from "react-router-dom";
-import { useAuth } from "../contexts/SupabaseAuthContext";
-import { supabase } from "../lib/supabaseClient";
+import React from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-export default function DashboardLayout() {
+// Icons
+import {
+  LayoutDashboard,
+  FileText,
+  Mic,
+  BookOpen,
+  User,
+  Settings as SettingsIcon,
+  CreditCard,
+  LogOut,
+} from "lucide-react";
+
+const DashboardLayout = () => {
   const { user } = useAuth();
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }
-
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-gray-50">
 
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md p-6 hidden md:block">
-        <h2 className="text-2xl font-bold mb-8">BloomBold</h2>
+      <aside className="w-64 bg-white shadow-md p-6 flex flex-col">
+        <h1 className="text-2xl font-bold mb-8 text-indigo-600">BloomBold</h1>
 
-        <nav className="space-y-4">
-          <Link to="/dashboard" className="block text-lg hover:text-blue-600">
-            Overview
-          </Link>
-          <Link to="/dashboard/career" className="block text-lg hover:text-blue-600">
-            Career Builder
-          </Link>
-          <Link to="/dashboard/mentor" className="block text-lg hover:text-blue-600">
-            Mentor Chat
-          </Link>
-          <Link to="/dashboard/tools" className="block text-lg hover:text-blue-600">
-            Tools
-          </Link>
-          <Link to="/dashboard/profile" className="block text-lg hover:text-blue-600">
-            Profile
-          </Link>
+        <nav className="flex flex-col gap-3">
+
+          <NavLink to="/dashboard" className="nav-link">
+            <div className="flex items-center gap-2">
+              <LayoutDashboard size={18} />
+              Dashboard
+            </div>
+          </NavLink>
+
+          <NavLink to="/resume" className="nav-link">
+            <div className="flex items-center gap-2">
+              <FileText size={18} />
+              Resume Builder
+            </div>
+          </NavLink>
+
+          <NavLink to="/interview" className="nav-link">
+            <div className="flex items-center gap-2">
+              <Mic size={18} />
+              Interview Prep
+            </div>
+          </NavLink>
+
+          <NavLink to="/journal" className="nav-link">
+            <div className="flex items-center gap-2">
+              <BookOpen size={18} />
+              Career Journal
+            </div>
+          </NavLink>
+
+          <NavLink to="/profile" className="nav-link">
+            <div className="flex items-center gap-2">
+              <User size={18} />
+              Profile
+            </div>
+          </NavLink>
+
+          <NavLink to="/settings" className="nav-link">
+            <div className="flex items-center gap-2">
+              <SettingsIcon size={18} />
+              Settings
+            </div>
+          </NavLink>
+
+          <NavLink to="/billing" className="nav-link">
+            <div className="flex items-center gap-2">
+              <CreditCard size={18} />
+              Billing
+            </div>
+          </NavLink>
+
         </nav>
+
+        {/* Spacer pushes logout to bottom */}
+        <div className="flex-1"></div>
+
+        <NavLink
+          to="/logout"
+          className="nav-link mt-auto text-red-600 hover:bg-red-50"
+        >
+          <div className="flex items-center gap-2">
+            <LogOut size={18} />
+            Logout
+          </div>
+        </NavLink>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 p-6">
-
-        {/* Header with user + logout */}
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-
-          <div className="bg-white shadow px-4 py-2 rounded-lg flex items-center gap-4">
-            <span className="text-slate-600">{user?.email}</span>
-
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
-            >
-              Logout
-            </button>
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-10">
+        {/* Header */}
+        <header className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-semibold">Welcome</h2>
+          <div className="text-gray-600 bg-white shadow px-4 py-2 rounded-md">
+            {user?.email}
           </div>
         </header>
 
-        {/* Render the page content */}
+        {/* Routed page content */}
         <Outlet />
-      </div>
+      </main>
     </div>
   );
-}
+};
 
+export default DashboardLayout;

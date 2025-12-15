@@ -3,24 +3,24 @@ import { supabase } from "@/lib/supabaseClient";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load initial session
   useEffect(() => {
-    async function loadSession() {
-      const { data } = await supabase.auth.getSession();
+    // 1️⃣ Hydrate session on first load
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
-    }
+    });
 
-    loadSession();
-
-    // Listen for changes (sign-in, sign-out)
+    // 2️⃣ Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
       setUser(session?.user ?? null);
     });
 
@@ -28,11 +28,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, session, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}
 

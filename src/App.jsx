@@ -12,11 +12,21 @@ import Signup from "@/pages/Signup";
 // OAuth Callback Page
 import AuthCallback from "@/pages/AuthCallback";
 
-// Protected Dashboard Pages
-import Tools from "@/pages/Tools";
-
-// Components
+// Protected Components
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DashboardLayout from "@/layouts/DashboardLayout";
+
+// Dashboard Pages
+import Dashboard from "@/pages/dashboard/Dashboard";
+import Resume from "@/pages/dashboard/Resume";
+import Interview from "@/pages/dashboard/Interview";
+import Journal from "@/pages/dashboard/Journal";
+import Profile from "@/pages/dashboard/Profile";
+import Settings from "@/pages/dashboard/Settings";
+import Billing from "@/pages/dashboard/Billing";
+
+// Logout
+import Logout from "@/pages/Logout";
 
 function App() {
   return (
@@ -28,31 +38,23 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/logout" element={<Logout />} />
 
-          {/* Supabase OAuth Callback Handler (silent redirect) */}
+          {/* Supabase OAuth Callback */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/tools"
-            element={
-              <ProtectedRoute>
-                <Tools />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Future protected dashboard pages: */}
-          {/* 
-          <Route
-            path="/dashboard/mentor"
-            element={
-              <ProtectedRoute>
-                <Mentor />
-              </ProtectedRoute>
-            }
-          />
-          */}
+          {/* Protected Dashboard Layout + Pages */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/resume" element={<Resume />} />
+              <Route path="/interview" element={<Interview />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/billing" element={<Billing />} />
+            </Route>
+          </Route>
 
         </Routes>
       </Router>
@@ -61,6 +63,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

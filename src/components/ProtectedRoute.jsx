@@ -1,18 +1,21 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/SupabaseAuthContext.jsx";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const { user, loading } = useAuth();
 
-  // Show nothing until we know session status
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
-  // If no user, redirect to login
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
+
+
 
