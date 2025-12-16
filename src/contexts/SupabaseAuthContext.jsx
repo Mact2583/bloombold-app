@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-console.log("🔥 AuthContext file loaded");
-
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -11,21 +9,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("🔥 AuthContext useEffect mounted");
+    console.log("🔥 AuthContext mounted");
 
-    // 1️⃣ Hydrate session on page load
     supabase.auth.getSession().then(({ data }) => {
-      console.log("🔥 getSession result:", data.session);
+      console.log("🔥 getSession:", data.session);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
 
-    // 2️⃣ Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔥 AUTH EVENT:", event, session);
+      console.log("🔥 AUTH EVENT:", event);
       setSession(session);
       setUser(session?.user ?? null);
     });

@@ -4,8 +4,13 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 export default function ProtectedRoute() {
   const { session, loading } = useAuth();
 
+  // ⛔️ DO NOT REDIRECT while loading
   if (loading) {
-    return <div className="p-10">Checking session…</div>;
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Checking session…
+      </div>
+    );
   }
 
   if (!session) {
@@ -14,6 +19,7 @@ export default function ProtectedRoute() {
 
   return <Outlet />;
 }
+
 
 
 

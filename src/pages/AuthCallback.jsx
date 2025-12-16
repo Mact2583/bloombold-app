@@ -1,27 +1,16 @@
-console.log("AUTH CALLBACK LOADED", window.location.href);
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const finalizeAuth = async () => {
-      const { error } = await supabase.auth.exchangeCodeForSession(
-        window.location.href
-      );
+    // Let Supabase hydrate the session
+    const timer = setTimeout(() => {
+      navigate("/dashboard", { replace: true });
+    }, 300);
 
-      if (error) {
-        console.error("OAuth exchange error:", error);
-        navigate("/login");
-        return;
-      }
-
-      navigate("/dashboard");
-    };
-
-    finalizeAuth();
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   return (
@@ -30,6 +19,7 @@ export default function AuthCallback() {
     </div>
   );
 }
+
 
 
 
