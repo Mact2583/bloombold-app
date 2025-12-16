@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
+console.log("🔥 AuthContext file loaded");
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -9,8 +11,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("🔥 AuthContext useEffect mounted");
+
     // 1️⃣ Hydrate session on page load
     supabase.auth.getSession().then(({ data }) => {
+      console.log("🔥 getSession result:", data.session);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
@@ -20,7 +25,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("AUTH EVENT:", event);
+      console.log("🔥 AUTH EVENT:", event, session);
       setSession(session);
       setUser(session?.user ?? null);
     });
@@ -38,6 +43,8 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+
 
 
 
