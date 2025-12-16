@@ -5,21 +5,22 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    if (session) {
+    if (!loading && session) {
       navigate("/dashboard");
     }
-  }, [session, navigate]);
+  }, [session, loading, navigate]);
 
   async function signInWithGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
     });
+  }
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading…</div>;
   }
 
   return (

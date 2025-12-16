@@ -9,9 +9,6 @@ import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 
-// OAuth Callback Page
-import AuthCallback from "@/pages/AuthCallback";
-
 // Protected Components
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -33,15 +30,11 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
-
-          {/* Supabase OAuth Callback */}
-          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Protected Dashboard Layout + Pages */}
           <Route element={<ProtectedRoute />}>
@@ -55,7 +48,6 @@ function App() {
               <Route path="/billing" element={<Billing />} />
             </Route>
           </Route>
-
         </Routes>
       </Router>
     </AuthProvider>
@@ -63,6 +55,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
