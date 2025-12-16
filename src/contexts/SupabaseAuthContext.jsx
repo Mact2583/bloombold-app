@@ -9,22 +9,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1️⃣ Hydrate session on first load
-    supabase.auth.getSession().then(({ data }) => {
+    // 1️⃣ Get initial session on app load
+    const loadSession = async () => {
+      const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
-    });
+    };
 
-    // 2️⃣ Listen for auth changes
+    loadSession();
+
+    // 2️⃣ Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("AUTH STATE CHANGE:", event, session);
       setSession(session);
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -37,4 +43,5 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
 
