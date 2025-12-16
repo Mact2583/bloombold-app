@@ -4,12 +4,12 @@ import { supabase } from "@/lib/supabaseClient";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1️⃣ Initial session hydration
+    // 1️⃣ Hydrate session on page load
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("AUTH STATE CHANGE:", event, session);
+      console.log("AUTH EVENT:", event);
       setSession(session);
       setUser(session?.user ?? null);
     });
@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading }}>
+    <AuthContext.Provider value={{ session, user, loading }}>
       {children}
     </AuthContext.Provider>
   );
