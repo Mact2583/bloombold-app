@@ -1,21 +1,19 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-const ProtectedRoute = () => {
-  const { user, loading } = useAuth();
+export default function ProtectedRoute() {
+  const { session, loading } = useAuth();
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-10">Checking session…</div>;
   }
 
-  if (!user) {
+  if (!session) {
     return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
-};
-
-export default ProtectedRoute;
+}
 
 
 

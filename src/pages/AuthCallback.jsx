@@ -1,3 +1,4 @@
+console.log("AUTH CALLBACK LOADED", window.location.href);
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
