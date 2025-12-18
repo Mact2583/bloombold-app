@@ -22,9 +22,7 @@ const Login = () => {
     });
   };
 
-  if (loading) {
-    return <div className="p-6 text-center">Checking session…</div>;
-  }
+  if (loading) return null;
 
   return (
     <div className="auth-container">
@@ -36,6 +34,10 @@ const Login = () => {
       >
         Continue with Google
       </button>
+
+      <p className="text-gray-600 text-sm text-center">
+        Use Google to sign in.
+      </p>
     </div>
   );
 };
