@@ -7,20 +7,30 @@ const Login = () => {
   const navigate = useNavigate();
   const { session, loading } = useAuth();
 
+  // ✅ WAIT for auth hydration before redirecting
   useEffect(() => {
     if (!loading && session) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
-  }, [session, loading, navigate]);
+  }, [loading, session, navigate]);
 
-  async function signInWithGoogle() {
+  // ✅ PKCE OAuth (NO custom callback page)
+  const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: "https://bloombold.io",
+      },
     });
-  }
+  };
 
+  // Optional UX: avoid flashing login while loading
   if (loading) {
-    return <div className="p-6 text-center">Loading…</div>;
+    return (
+      <div className="p-6 text-center text-gray-600">
+        Checking session…
+      </div>
+    );
   }
 
   return (
@@ -42,6 +52,7 @@ const Login = () => {
 };
 
 export default Login;
+
 
 
 

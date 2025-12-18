@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
     console.log("🔥 AuthContext mounted");
 
     supabase.auth.getSession().then(({ data }) => {
-      console.log("🔥 getSession:", data.session);
+      console.log("🔥 Initial session:", data.session);
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔥 AUTH EVENT:", event);
+      console.log("🔥 AUTH EVENT:", event, session);
       setSession(session);
       setUser(session?.user ?? null);
     });
