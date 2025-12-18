@@ -17,13 +17,13 @@ const Login = () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: "https://bloombold.io",
       },
     });
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading…</div>;
+    return <div className="p-6 text-center">Checking session…</div>;
   }
 
   return (
@@ -36,15 +36,12 @@ const Login = () => {
       >
         Continue with Google
       </button>
-
-      <p className="text-gray-600 text-sm text-center">
-        Use Google to sign in.
-      </p>
     </div>
   );
 };
 
 export default Login;
+
 
 
 
