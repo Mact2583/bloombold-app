@@ -7,30 +7,23 @@ const Login = () => {
   const navigate = useNavigate();
   const { session, loading } = useAuth();
 
-  // ✅ WAIT for auth hydration before redirecting
   useEffect(() => {
     if (!loading && session) {
       navigate("/dashboard", { replace: true });
     }
-  }, [loading, session, navigate]);
+  }, [session, loading, navigate]);
 
-  // ✅ PKCE OAuth (NO custom callback page)
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "https://bloombold.io",
+        redirectTo: window.location.origin,
       },
     });
   };
 
-  // Optional UX: avoid flashing login while loading
   if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-600">
-        Checking session…
-      </div>
-    );
+    return <div className="p-6 text-center">Loading…</div>;
   }
 
   return (
