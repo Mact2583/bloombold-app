@@ -4,14 +4,12 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 // Icons
 import {
-  LayoutDashboard,
-  FileText,
-  Mic,
-  BookOpen,
+  Home,
   User,
-  Settings as SettingsIcon,
+  FileText,
+  Settings,
   CreditCard,
-  LogOut,
+  LogOut
 } from "lucide-react";
 
 const DashboardLayout = () => {
