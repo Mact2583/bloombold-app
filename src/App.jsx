@@ -21,6 +21,7 @@ import Journal from "@/pages/dashboard/Journal";
 import Profile from "@/pages/dashboard/Profile";
 import Settings from "@/pages/dashboard/Settings";
 import Billing from "@/pages/dashboard/Billing";
+import AuthCallback from "@/pages/auth/Callback";
 
 // Logout
 import Logout from "@/pages/Logout";
@@ -46,6 +47,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/billing" element={<Billing />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
             </Route>
           </Route>
         </Routes>

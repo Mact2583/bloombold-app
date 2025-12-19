@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
   const { session, loading } = useAuth();
 
@@ -14,9 +14,18 @@ const Login = () => {
   }, [session, loading, navigate]);
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    console.log("🚀 Starting Google OAuth");
+
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: "https://bloombold.io/auth/callback",
+      },
     });
+
+    if (error) {
+      console.error("❌ OAuth error:", error);
+    }
   };
 
   if (loading) return null;
@@ -26,20 +35,16 @@ const Login = () => {
       <h1>Login</h1>
 
       <button
+        type="button"
         onClick={signInWithGoogle}
         className="bg-red-600 text-white px-4 py-2 rounded w-full mb-4"
       >
         Continue with Google
       </button>
-
-      <p className="text-gray-600 text-sm text-center">
-        Use Google to sign in.
-      </p>
     </div>
   );
-};
+}
 
-export default Login;
 
 
 
