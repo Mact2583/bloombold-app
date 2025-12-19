@@ -8,13 +8,15 @@ export const supabase = createClient(
   supabaseAnonKey,
   {
     auth: {
-      flowType: "pkce",            // ✅ REQUIRED
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,    // ✅ REQUIRED
+      flowType: "pkce",            // ✅ correct
+      autoRefreshToken: true,      // ✅ correct
+      persistSession: true,        // ✅ correct
+      detectSessionInUrl: true,    // ✅ correct
+      storage: window.localStorage // 🚨 THIS WAS MISSING
     },
   }
 );
+
 
 
 
