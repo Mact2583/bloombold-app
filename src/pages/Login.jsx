@@ -16,9 +16,6 @@ const Login = () => {
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: "https://bloombold.io",
-      },
     });
   };
 
@@ -43,6 +40,7 @@ const Login = () => {
 };
 
 export default Login;
+
 
 
 
