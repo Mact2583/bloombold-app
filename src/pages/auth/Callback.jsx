@@ -6,6 +6,8 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("🔍 Callback URL:", window.location.href);
+
     const finalizeAuth = async () => {
       const { data, error } = await supabase.auth.getSession();
 
@@ -16,7 +18,7 @@ export default function AuthCallback() {
       }
 
       if (data?.session) {
-        console.log("✅ Session established in callback");
+        console.log("✅ Session established");
         navigate("/dashboard", { replace: true });
       } else {
         console.warn("⚠️ No session found in callback");
@@ -29,3 +31,4 @@ export default function AuthCallback() {
 
   return <p className="p-6">Signing you in…</p>;
 }
+
