@@ -6,52 +6,26 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true;
+    const handleCallback = async () => {
+      const { data, error } = await supabase.auth.getSession();
 
-    const finishAuth = async () => {
-      try {
-        // ⏳ Give Supabase a moment to complete PKCE exchange
-        await new Promise((res) => setTimeout(res, 100));
+      if (error) {
+        console.error("❌ Auth callback error:", error);
+        navigate("/login", { replace: true });
+        return;
+      }
 
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (!isMounted) return;
-
-        if (error) {
-          console.error("❌ Error fetching session:", error);
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        if (!session) {
-          console.warn("⚠️ No session found after OAuth");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        console.log("✅ OAuth session established:", session.user.email);
-
+      if (data?.session) {
+        console.log("✅ Session established");
         navigate("/dashboard", { replace: true });
-      } catch (err) {
-        console.error("❌ Auth callback failure:", err);
+      } else {
+        console.warn("⚠️ No session found");
         navigate("/login", { replace: true });
       }
     };
 
-    finishAuth();
-
-    return () => {
-      isMounted = false;
-    };
+    handleCallback();
   }, [navigate]);
 
-  return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h2>Signing you in…</h2>
-      <p>Please wait while we finish securely logging you in.</p>
-    </div>
-  );
+  return <p>Signing you in…</p>;
 }

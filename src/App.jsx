@@ -29,14 +29,16 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* 🌐 Public Routes */}
+          {/* ✅ PUBLIC ROUTES */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
+
+          {/* 🚨 MUST BE PUBLIC */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* 🔐 Protected Routes */}
+          {/* 🔐 PROTECTED ROUTES */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -55,6 +57,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
