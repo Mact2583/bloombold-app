@@ -8,7 +8,6 @@ import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
-import Logout from "@/pages/Logout";
 import AuthCallback from "@/pages/auth/Callback";
 
 // Protected Components
@@ -24,21 +23,22 @@ import Profile from "@/pages/dashboard/Profile";
 import Settings from "@/pages/dashboard/Settings";
 import Billing from "@/pages/dashboard/Billing";
 
+// Logout
+import Logout from "@/pages/Logout";
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* ✅ PUBLIC ROUTES */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
-
-          {/* 🚨 MUST BE PUBLIC */}
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* 🔐 PROTECTED ROUTES */}
+          {/* PROTECTED ROUTES */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -57,6 +57,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
