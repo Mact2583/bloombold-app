@@ -8,6 +8,8 @@ import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import Logout from "@/pages/Logout";
+import AuthCallback from "@/pages/auth/Callback";
 
 // Protected Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -21,23 +23,20 @@ import Journal from "@/pages/dashboard/Journal";
 import Profile from "@/pages/dashboard/Profile";
 import Settings from "@/pages/dashboard/Settings";
 import Billing from "@/pages/dashboard/Billing";
-import AuthCallback from "@/pages/auth/Callback";
-
-// Logout
-import Logout from "@/pages/Logout";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* 🌐 Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Protected Dashboard Layout + Pages */}
+          {/* 🔐 Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -47,7 +46,6 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/billing" element={<Billing />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
             </Route>
           </Route>
         </Routes>
