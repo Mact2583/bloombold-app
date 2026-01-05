@@ -9,6 +9,7 @@ import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import AuthCallback from "@/pages/auth/Callback";
+import ResumeReview from "@/pages/ResumeReview";
 
 // Protected Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -28,7 +29,6 @@ import Logout from "@/pages/Logout";
 
 function App() {
   return (
-    <AuthProvider>
       <Router>
         <Routes>
           {/* PUBLIC ROUTES */}
@@ -37,6 +37,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+
+          {/* MVP PUBLIC ROUTE */}
+          <Route path="/resume-review" element={<ResumeReview />} />
 
           {/* PROTECTED ROUTES */}
           <Route element={<ProtectedRoute />}>
@@ -52,7 +55,6 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </AuthProvider>
   );
 }
 

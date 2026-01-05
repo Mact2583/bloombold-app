@@ -2,14 +2,16 @@ import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-// Icons
+// Icons (ALL icons explicitly imported and aligned with usage)
 import {
-  Home,
-  User,
+  LayoutDashboard,
   FileText,
+  Mic,
+  BookOpen,
+  User,
   Settings,
   CreditCard,
-  LogOut
+  LogOut,
 } from "lucide-react";
 
 const DashboardLayout = () => {
@@ -17,13 +19,13 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md p-6 flex flex-col">
-        <h1 className="text-2xl font-bold mb-8 text-indigo-600">BloomBold</h1>
+        <h1 className="text-2xl font-bold mb-8 text-indigo-600">
+          BloomBold
+        </h1>
 
         <nav className="flex flex-col gap-3">
-
           <NavLink to="/dashboard" className="nav-link">
             <div className="flex items-center gap-2">
               <LayoutDashboard size={18} />
@@ -61,7 +63,7 @@ const DashboardLayout = () => {
 
           <NavLink to="/settings" className="nav-link">
             <div className="flex items-center gap-2">
-              <SettingsIcon size={18} />
+              <Settings size={18} />
               Settings
             </div>
           </NavLink>
@@ -72,11 +74,10 @@ const DashboardLayout = () => {
               Billing
             </div>
           </NavLink>
-
         </nav>
 
-        {/* Spacer pushes logout to bottom */}
-        <div className="flex-1"></div>
+        {/* Push logout to bottom */}
+        <div className="flex-1" />
 
         <NavLink
           to="/logout"
@@ -89,7 +90,7 @@ const DashboardLayout = () => {
         </NavLink>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* Main Content */}
       <main className="flex-1 p-10">
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
