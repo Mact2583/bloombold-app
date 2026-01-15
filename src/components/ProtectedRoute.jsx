@@ -2,9 +2,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ProtectedRoute() {
-  const { session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
-  // ⛔️ DO NOT REDIRECT while loading
+  // 🔒 Block rendering until auth is known
   if (loading) {
     return (
       <div className="p-10 text-center text-gray-500">
@@ -13,13 +13,11 @@ export default function ProtectedRoute() {
     );
   }
 
-  if (!session) {
+  // 🚫 Not logged in
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  // ✅ Authenticated → allow page to decide
   return <Outlet />;
 }
-
-
-
-

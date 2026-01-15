@@ -1,80 +1,128 @@
-import React, { useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const returnTo =
+    location.state?.returnTo || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  /**
+   * ✅ If already logged in, never show login screen
+   */
+  if (user) {
+    navigate(returnTo, { replace: true });
+    return null;
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate(redirectTo, { replace: true });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      /**
+       * ✅ Let Supabase finish setting session
+       * AuthProvider will pick this up
+       */
+      navigate(returnTo, { replace: true });
+    } catch (err) {
+      setError("Unable to log in. Please try again.");
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-6">
-      <div className="w-full max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold text-center">Log in to BloomBold</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-semibold mb-6 text-center">
+          Log in to BloomBold
+        </h1>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full rounded-md border p-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <form
+          onSubmit={handleLogin}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              required
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full rounded-md border p-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+              required
+              className="w-full rounded-md border px-3 py-2"
+            />
+          </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-black py-3 text-sm font-medium text-white disabled:opacity-50"
+            className={`w-full rounded-md px-4 py-2 text-white font-medium ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-900"
+            }`}
           >
-            {loading ? "Logging in…" : "Log In"}
+            {loading ? "Logging in…" : "Log in"}
           </button>
         </form>
 
-        <p className="text-sm text-center text-muted-foreground">
+        <p className="mt-6 text-sm text-center text-gray-600">
           Don’t have an account?{" "}
-          <Link to="/signup" className="underline">
+          <Link
+            to="/signup"
+            className="underline"
+          >
             Sign up
           </Link>
         </p>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

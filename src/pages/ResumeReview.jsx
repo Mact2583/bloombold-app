@@ -1,117 +1,128 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-import ResumeForm from "@/components/ResumeForm";
-import ResumeResults from "@/components/ResumeResults";
-
-const FREE_LIMIT = 3;
-
-const ResumeReview = () => {
-  const { user, loading } = useAuth();
+export default function ResumeReview() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [results, setResults] = useState(null);
-  const [reviewCount, setReviewCount] = useState(null);
-  const [countLoading, setCountLoading] = useState(true);
+  const [resumeText, setResumeText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Redirect unauthenticated users with return path
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/login?redirect=/resume-review");
-    }
-  }, [loading, user, navigate]);
+  const handleSubmit = async () => {
+    setError(null);
+    setLoading(true);
 
-  // Fetch number of existing reviews
-  useEffect(() => {
-    const fetchReviewCount = async () => {
-      if (!user) return;
+    // 📊 EVENT — resume submitted
+    console.info("[event]", {
+      name: "resume_review_submitted",
+      source: "resume_review",
+      user: user?.id ?? "anonymous",
+    });
 
-      setCountLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "analyze-resume",
+        {
+          body: { resumeText },
+        }
+      );
 
-      const { count, error } = await supabase
-        .from("resume_reviews")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      if (!error) {
-        setReviewCount(count ?? 0);
+      if (error) {
+        throw error;
       }
 
-      setCountLoading(false);
-    };
+      // 🚧 Free limit reached
+      if (data?.upgradeRequired) {
+        console.info("[event]", {
+          name: "resume_review_limit_reached",
+          source: "resume_review",
+          user: user?.id ?? "anonymous",
+        });
 
-    fetchReviewCount();
-  }, [user]);
+        setError(
+          "You’ve reached the free resume limit. Upgrade to Pro to continue reviewing resumes."
+        );
+        return;
+      }
 
-  if (loading || countLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading…
-      </div>
-    );
-  }
+      // ✅ Success → dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        "We couldn’t analyze your resume right now. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (!user) {
-    return null;
-  }
+  const handleUpgradeClick = () => {
+    console.info("[event]", {
+      name: "upgrade_clicked",
+      source: "resume_review",
+      user: user?.id ?? "anonymous",
+    });
 
-  const limitReached = reviewCount >= FREE_LIMIT;
+    if (user) {
+      navigate("/dashboard/upgrade");
+    } else {
+      navigate("/login", {
+        state: { returnTo: "/resume-review" },
+      });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-12">
-      <div className="mx-auto max-w-3xl space-y-8">
-        <header className="space-y-2 text-center">
-          <h1 className="text-3xl font-semibold">
-            Get AI-Powered Resume Feedback
-          </h1>
-          <p className="text-muted-foreground">
-            Clear, actionable suggestions to improve your resume.
-          </p>
-        </header>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">
+          AI Resume Review
+        </h1>
+        <p className="text-gray-600">
+          Get clear, ATS-aware feedback on your resume.
+        </p>
+      </div>
 
-        {/* Usage banner */}
-        <div className="rounded-md border bg-muted p-4 text-sm text-center">
-          You’ve used{" "}
-          <strong>
-            {reviewCount} / {FREE_LIMIT}
-          </strong>{" "}
-          free resume reviews.
+      <div className="rounded-md border bg-blue-50 p-4 text-sm text-blue-900">
+        <strong>Free accounts</strong> can review up to{" "}
+        <strong>3 resumes</strong>.  
+        Upgrade to Pro anytime for{" "}
+        <strong>unlimited reviews</strong> and saved history.
+      </div>
+
+      <textarea
+        value={resumeText}
+        onChange={(e) => setResumeText(e.target.value)}
+        rows={12}
+        className="w-full rounded-md border p-4 text-sm"
+        placeholder="Paste your resume here…"
+      />
+
+      {error && (
+        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          {error}
         </div>
+      )}
 
-        {limitReached ? (
-          <div className="rounded-lg border border-dashed p-8 text-center space-y-4">
-            <h2 className="text-xl font-semibold">
-              You’ve reached your free limit
-            </h2>
-            <p className="text-muted-foreground">
-              Upgrade to continue analyzing resumes and track your progress
-              over time.
-            </p>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
+        >
+          {loading ? "Reviewing…" : "Review Resume"}
+        </button>
 
-            <button
-              onClick={() => navigate("/billing")}
-              className="inline-flex items-center justify-center rounded-md bg-black px-6 py-3 text-sm font-medium text-white"
-            >
-              Upgrade to Continue
-            </button>
-          </div>
-        ) : (
-          <>
-            <ResumeForm
-              onAnalyze={(data) => {
-                setResults(data);
-                setReviewCount((prev) => prev + 1);
-              }}
-            />
-
-            <ResumeResults results={results} />
-          </>
-        )}
+        <button
+          onClick={handleUpgradeClick}
+          className="text-sm underline"
+        >
+          Upgrade to Pro
+        </button>
       </div>
     </div>
   );
-};
-
-export default ResumeReview;
+}

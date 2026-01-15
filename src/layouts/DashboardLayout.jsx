@@ -1,8 +1,6 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
-
-// Icons (ALL icons explicitly imported and aligned with usage)
 import {
   LayoutDashboard,
   FileText,
@@ -15,7 +13,7 @@ import {
 } from "lucide-react";
 
 const DashboardLayout = () => {
-  const { user } = useAuth();
+  const { user, isPro } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -27,80 +25,65 @@ const DashboardLayout = () => {
 
         <nav className="flex flex-col gap-3">
           <NavLink to="/dashboard" className="nav-link">
-            <div className="flex items-center gap-2">
-              <LayoutDashboard size={18} />
-              Dashboard
-            </div>
+            <LayoutDashboard size={18} /> Dashboard
           </NavLink>
 
-          <NavLink to="/resume" className="nav-link">
-            <div className="flex items-center gap-2">
-              <FileText size={18} />
-              Resume Builder
-            </div>
+          <NavLink to="/dashboard/resume" className="nav-link">
+            <FileText size={18} /> Resume Builder
           </NavLink>
 
-          <NavLink to="/interview" className="nav-link">
-            <div className="flex items-center gap-2">
-              <Mic size={18} />
-              Interview Prep
-            </div>
+          <NavLink to="/dashboard/resume-reviews" className="nav-link">
+            <FileText size={18} /> Resume Reviews
           </NavLink>
 
-          <NavLink to="/journal" className="nav-link">
-            <div className="flex items-center gap-2">
-              <BookOpen size={18} />
-              Career Journal
-            </div>
+          <NavLink to="/dashboard/interview" className="nav-link">
+            <Mic size={18} /> Interview Prep
           </NavLink>
 
-          <NavLink to="/profile" className="nav-link">
-            <div className="flex items-center gap-2">
-              <User size={18} />
-              Profile
-            </div>
+          <NavLink to="/dashboard/journal" className="nav-link">
+            <BookOpen size={18} /> Career Journal
           </NavLink>
 
-          <NavLink to="/settings" className="nav-link">
-            <div className="flex items-center gap-2">
-              <Settings size={18} />
-              Settings
-            </div>
+          <NavLink to="/dashboard/profile" className="nav-link">
+            <User size={18} /> Profile
           </NavLink>
 
-          <NavLink to="/billing" className="nav-link">
-            <div className="flex items-center gap-2">
-              <CreditCard size={18} />
-              Billing
-            </div>
+          <NavLink to="/dashboard/settings" className="nav-link">
+            <Settings size={18} /> Settings
+          </NavLink>
+
+          <NavLink to="/dashboard/billing" className="nav-link">
+            <CreditCard size={18} /> Billing
           </NavLink>
         </nav>
 
-        {/* Push logout to bottom */}
         <div className="flex-1" />
 
-        <NavLink
-          to="/logout"
-          className="nav-link mt-auto text-red-600 hover:bg-red-50"
-        >
-          <div className="flex items-center gap-2">
-            <LogOut size={18} />
-            Logout
-          </div>
+        <NavLink to="/logout" className="nav-link text-red-600">
+          <LogOut size={18} /> Logout
         </NavLink>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 p-10">
-        {/* Header */}
         <header className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-semibold">Welcome</h2>
-          <div className="text-gray-600 bg-white shadow px-4 py-2 rounded-md">
-            {user?.email}
+          <h2 className="text-3xl font-semibold">
+            Dashboard
+          </h2>
+
+          <div className="flex items-center gap-3">
+            {isPro && (
+              <span className="rounded-full bg-green-100 text-green-800 px-3 py-1 text-sm font-medium">
+                Pro
+              </span>
+            )}
+
+            <div className="text-gray-600 bg-white shadow px-4 py-2 rounded-md">
+              {user?.email}
+            </div>
           </div>
         </header>
 
-        {/* Routed page content */}
         <Outlet />
       </main>
     </div>
