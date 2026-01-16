@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
-import { useParams, Navigate, Link } from "react-router-dom";
+import { useParams, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
-import ResumeReviewFormatted from "@/components/ResumeReviewFormatted";
+
+function ReviewLoadingSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+      <div className="h-6 bg-muted rounded w-1/3" />
+      <div className="h-4 bg-muted rounded w-1/2" />
+
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 bg-muted rounded" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ResumeReviewDetail() {
-  console.log("ResumeReviewDetail mounted");
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const { user, isPro, loading: authLoading } = useAuth();
 
   const [review, setReview] = useState(null);
+  const [isMostRecent, setIsMostRecent] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // ✅ DATA FETCH (hooks always run)
   useEffect(() => {
     if (!user) return;
 
@@ -21,9 +35,9 @@ export default function ResumeReviewDetail() {
 
     const loadReview = async () => {
       setLoading(true);
-      setError(null);
 
-      const { data, error } = await supabase
+      // Load requested review
+      const { data: reviewData } = await supabase
         .from("resume_reviews")
         .select("id, created_at, target_role, results")
         .eq("id", id)
@@ -32,13 +46,21 @@ export default function ResumeReviewDetail() {
 
       if (!active) return;
 
-      if (error || !data) {
-        setError("We couldn’t load this resume review.");
-        setReview(null);
-      } else {
-        setReview(data);
-      }
+      // Load most recent review ID
+      const { data: latest } = await supabase
+        .from("resume_reviews")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
+      if (!active) return;
+
+      setReview(reviewData || null);
+      setIsMostRecent(
+        Boolean(reviewData && latest && reviewData.id === latest.id)
+      );
       setLoading(false);
     };
 
@@ -48,103 +70,135 @@ export default function ResumeReviewDetail() {
       active = false;
     };
   }, [id, user]);
-  
-  console.log("Auth state:", { user, isPro, authLoading });
 
-  /* ──────────────────────────────
-     RENDER STATES (NO HOOKS BELOW)
-     ────────────────────────────── */
-
-  // 1️⃣ Auth still resolving
-  if (authLoading) {
-    return (
-      <div className="text-gray-500">
-        Checking access…
-      </div>
-    );
+  // 🔐 Auth resolving
+  if (authLoading || loading) {
+    return <ReviewLoadingSkeleton />;
   }
 
-  // 2️⃣ Not logged in
-  //if (!user) {
-  //return <Navigate to="/login" replace />;
-  //}
-
-  // 3️⃣ Logged in but not Pro
-  //if (!isPro) {
-  //return <Navigate to="/dashboard/upgrade" replace />;
-  //}
-
-  // 4️⃣ Review loading
-  if (loading) {
-    return (
-      <div className="text-gray-500">
-        Loading review…
-      </div>
-    );
+  // 🔐 Not logged in
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  // 5️⃣ Error state
-  if (error) {
+  // 🚫 Free user accessing older review
+  if (!isPro && !isMostRecent) {
     return (
-      <div className="rounded-lg bg-white p-6 shadow-sm">
-        <p className="text-red-600 mb-4">{error}</p>
-        <Link
-          to="/dashboard/resume-reviews"
-          className="text-sm underline"
-        >
-          Back to history
-        </Link>
-      </div>
-    );
-  }
+      <div className="max-w-2xl mx-auto space-y-6">
+        <h1 className="text-xl font-semibold">
+          Review unavailable
+        </h1>
 
-  // 6️⃣ No data (edge case)
-  if (!review || !review.results) {
-    return (
-      <div className="rounded-lg bg-white p-6 shadow-sm">
         <p className="text-gray-600">
-          This review doesn’t contain feedback yet.
+          Free accounts can view their most recent resume review.
         </p>
-        <Link
-          to="/dashboard/resume-reviews"
-          className="text-sm underline mt-3 inline-block"
-        >
-          Back to history
-        </Link>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() =>
+              navigate("/dashboard/resume-reviews")
+            }
+            className="rounded-md border px-5 py-2 text-sm"
+          >
+            View latest review
+          </button>
+
+          <button
+            onClick={() =>
+              navigate("/dashboard/upgrade")
+            }
+            className="rounded-md bg-black px-5 py-2 text-sm text-white hover:bg-gray-900"
+          >
+            Upgrade to Pro
+          </button>
+        </div>
       </div>
     );
   }
 
-  // 7️⃣ SUCCESS 🎉
+  // 🚫 Review not found
+  if (!review) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <h1 className="text-xl font-semibold">
+          Review not found
+        </h1>
+
+        <p className="text-gray-600">
+          This resume review may no longer be available.
+        </p>
+
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="rounded-md border px-5 py-2 text-sm"
+        >
+          Back to dashboard
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-3xl space-y-6">
-      <div>
+    <div className="max-w-3xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="space-y-1">
         <h1 className="text-2xl font-semibold">
           Resume Review
         </h1>
+
         <p className="text-sm text-gray-500">
           {new Date(review.created_at).toLocaleString()}
-          {review.target_role && ` • Target role: ${review.target_role}`}
+          {review.target_role && ` • ${review.target_role}`}
         </p>
       </div>
 
-      <ResumeReviewFormatted results={review.results} />
+      {/* Results */}
+      <div className="space-y-6">
+        {Object.entries(review.results || {}).map(
+          ([section, content]) => (
+            <div
+              key={section}
+              className="rounded-lg border bg-background p-6 shadow-sm space-y-2"
+            >
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                {section.replace(/_/g, " ")}
+              </h2>
 
-      <div className="flex gap-4 pt-4">
-        <Link
-          to={`/dashboard/resume-reviews/${review.id}/export`}
-          className="rounded-md bg-black px-5 py-2 text-white text-sm hover:bg-gray-900"
-        >
-          Export Review
-        </Link>
+              <p className="text-gray-800 whitespace-pre-line">
+                {content}
+              </p>
+            </div>
+          )
+        )}
+      </div>
 
-        <Link
-          to="/dashboard/resume-reviews"
+      {/* Actions */}
+      <div className="flex flex-wrap gap-3 pt-4">
+        <button
+          onClick={() => navigate("/resume-review")}
           className="rounded-md border px-5 py-2 text-sm"
         >
-          Back to history
-        </Link>
+          Run another review
+        </button>
+
+        {isPro && (
+          <button
+            onClick={() =>
+              navigate("/dashboard/resume-reviews")
+            }
+            className="rounded-md border px-5 py-2 text-sm"
+          >
+            View full history
+          </button>
+        )}
       </div>
+
+      {!isPro && (
+        <p className="text-sm text-gray-500">
+          Your most recent review is saved here.
+          Upgrade to revisit past feedback and export PDFs.
+        </p>
+      )}
     </div>
   );
 }

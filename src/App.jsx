@@ -7,9 +7,9 @@ import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import Logout from "@/pages/Logout";
 import AuthCallback from "@/pages/auth/Callback";
 import ResumeReview from "@/pages/ResumeReview";
-import Logout from "@/pages/Logout";
 
 // Protected routing
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -29,7 +29,7 @@ import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
 import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
 import ResumeReviewExport from "@/pages/dashboard/ResumeReviewExport";
 
-// Billing / upgrade
+// Upgrade
 import Upgrade from "@/pages/dashboard/Upgrade";
 
 function App() {
@@ -38,24 +38,29 @@ function App() {
       <Router>
         <Routes>
 
-          {/* Public */}
-          <Route path="/" element={<LandingPage />} />
+          {/* =====================
+              Public Routes
+          ====================== */}
+          import { Navigate } from "react-router-dom";
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Public MVP */}
+          {/* Public MVP entry */}
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected Dashboard */}
+          {/* =====================
+              Protected App
+          ====================== */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
 
               {/* Dashboard home */}
               <Route index element={<Dashboard />} />
 
-              {/* Resume review flow */}
+              {/* Resume reviews */}
               <Route path="resume-reviews" element={<ResumeReviewHistory />} />
               <Route path="resume-reviews/:id" element={<ResumeReviewDetail />} />
               <Route
@@ -63,11 +68,11 @@ function App() {
                 element={<ResumeReviewExport />}
               />
 
-              {/* Upgrade / billing */}
+              {/* Billing / Upgrade */}
               <Route path="upgrade" element={<Upgrade />} />
               <Route path="billing" element={<Billing />} />
 
-              {/* Other dashboard tools */}
+              {/* Other tools */}
               <Route path="resume" element={<Resume />} />
               <Route path="interview" element={<Interview />} />
               <Route path="journal" element={<Journal />} />

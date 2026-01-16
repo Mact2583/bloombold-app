@@ -9,119 +9,138 @@ export default function ResumeReview() {
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState("info"); // info | upgrade | error
 
   const handleSubmit = async () => {
-    setError(null);
-    setLoading(true);
+    setMessage(null);
 
-    // 📊 EVENT — resume submitted
-    console.info("[event]", {
-      name: "resume_review_submitted",
-      source: "resume_review",
-      user: user?.id ?? "anonymous",
-    });
+    if (!resumeText.trim()) {
+      setMessage("Please paste your resume to continue.");
+      setMessageType("info");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke(
         "analyze-resume",
-        {
-          body: { resumeText },
-        }
+        { body: { resumeText } }
       );
 
-      if (error) {
-        throw error;
+      // 🔐 Not logged in
+      if (data?.error === "Unauthorized") {
+        setMessage(
+          "Please log in to continue. Your resume feedback will be waiting for you."
+        );
+        setMessageType("info");
+        return;
       }
 
       // 🚧 Free limit reached
       if (data?.upgradeRequired) {
-        console.info("[event]", {
-          name: "resume_review_limit_reached",
-          source: "resume_review",
-          user: user?.id ?? "anonymous",
-        });
-
-        setError(
-          "You’ve reached the free resume limit. Upgrade to Pro to continue reviewing resumes."
+        setMessage(
+          "You’ve used your 3 free resume reviews. Upgrade to Pro to continue reviewing and access your full history."
         );
+        setMessageType("upgrade");
         return;
       }
 
-      // ✅ Success → dashboard
-      navigate("/dashboard");
-    } catch (err) {
-      setError(
-        "We couldn’t analyze your resume right now. Please try again."
+      // ❌ Unexpected error
+      if (error || data?.error) {
+        setMessage(
+          "We couldn’t analyze your resume right now. Please try again in a moment."
+        );
+        setMessageType("error");
+        return;
+      }
+
+      // ✅ Success
+      navigate("/dashboard/resume-reviews");
+    } catch {
+      setMessage(
+        "Something went wrong while analyzing your resume. Please try again."
       );
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpgradeClick = () => {
-    console.info("[event]", {
-      name: "upgrade_clicked",
-      source: "resume_review",
-      user: user?.id ?? "anonymous",
-    });
-
-    if (user) {
-      navigate("/dashboard/upgrade");
-    } else {
-      navigate("/login", {
-        state: { returnTo: "/resume-review" },
-      });
-    }
-  };
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">
-          AI Resume Review
+          Resume Review
         </h1>
         <p className="text-gray-600">
           Get clear, ATS-aware feedback on your resume.
         </p>
       </div>
 
-      <div className="rounded-md border bg-blue-50 p-4 text-sm text-blue-900">
-        <strong>Free accounts</strong> can review up to{" "}
-        <strong>3 resumes</strong>.  
-        Upgrade to Pro anytime for{" "}
-        <strong>unlimited reviews</strong> and saved history.
+      {/* Resume input */}
+      <div className="space-y-2">
+        <textarea
+          value={resumeText}
+          onChange={(e) => setResumeText(e.target.value)}
+          rows={14}
+          className="w-full rounded-md border p-4 text-sm"
+          placeholder="Paste your resume text here…"
+        />
+
+        <p className="text-xs text-gray-500">
+          No formatting required. Results usually appear in under a minute.
+        </p>
       </div>
 
-      <textarea
-        value={resumeText}
-        onChange={(e) => setResumeText(e.target.value)}
-        rows={12}
-        className="w-full rounded-md border p-4 text-sm"
-        placeholder="Paste your resume here…"
-      />
-
-      {error && (
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-          {error}
+      {/* Message */}
+      {message && (
+        <div
+          className={`rounded-md p-4 text-sm ${
+            messageType === "upgrade"
+              ? "bg-blue-50 text-blue-800"
+              : messageType === "error"
+              ? "bg-red-50 text-red-700"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {message}
         </div>
       )}
 
+      {/* Actions */}
       <div className="flex items-center gap-4">
         <button
           onClick={handleSubmit}
           disabled={loading}
           className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
         >
-          {loading ? "Reviewing…" : "Review Resume"}
+          {loading ? "Analyzing…" : "Get resume feedback"}
         </button>
 
-        <button
-          onClick={handleUpgradeClick}
-          className="text-sm underline"
-        >
-          Upgrade to Pro
-        </button>
+        {!user && (
+          <button
+            onClick={() =>
+              navigate("/login", {
+                state: { returnTo: "/resume-review" },
+              })
+            }
+            className="text-sm underline"
+          >
+            Log in
+          </button>
+        )}
+
+        {messageType === "upgrade" && (
+          <button
+            onClick={() => navigate("/dashboard/upgrade")}
+            className="text-sm font-medium underline"
+          >
+            Upgrade to Pro
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 import {
   LayoutDashboard,
@@ -12,77 +12,96 @@ import {
   LogOut,
 } from "lucide-react";
 
+function DashboardHeaderSkeleton() {
+  return (
+    <div className="flex justify-between items-center mb-8">
+      <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+      <div className="h-10 w-56 rounded bg-muted animate-pulse" />
+    </div>
+  );
+}
+
 const DashboardLayout = () => {
-  const { user, isPro } = useAuth();
+  const location = useLocation();
+  const { user, loading } = useAuth();
+
+  const pageTitleMap = {
+    "/dashboard": "Dashboard",
+    "/dashboard/resume": "Resume Builder",
+    "/dashboard/resume-reviews": "Resume Reviews",
+    "/dashboard/interview": "Interview Prep",
+    "/dashboard/journal": "Career Journal",
+    "/dashboard/profile": "Profile",
+    "/dashboard/settings": "Settings",
+    "/dashboard/billing": "Billing",
+  };
+
+  const pageTitle =
+    pageTitleMap[location.pathname] || "Dashboard";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-[#F7F8FD]">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md p-6 flex flex-col">
-        <h1 className="text-2xl font-bold mb-8 text-indigo-600">
+      <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
+        <h1 className="text-2xl font-semibold mb-8 text-[#7D77DF]">
           BloomBold
         </h1>
 
-        <nav className="flex flex-col gap-3">
-          <NavLink to="/dashboard" className="nav-link">
-            <LayoutDashboard size={18} /> Dashboard
-          </NavLink>
-
-          <NavLink to="/dashboard/resume" className="nav-link">
-            <FileText size={18} /> Resume Builder
-          </NavLink>
-
-          <NavLink to="/dashboard/resume-reviews" className="nav-link">
-            <FileText size={18} /> Resume Reviews
-          </NavLink>
-
-          <NavLink to="/dashboard/interview" className="nav-link">
-            <Mic size={18} /> Interview Prep
-          </NavLink>
-
-          <NavLink to="/dashboard/journal" className="nav-link">
-            <BookOpen size={18} /> Career Journal
-          </NavLink>
-
-          <NavLink to="/dashboard/profile" className="nav-link">
-            <User size={18} /> Profile
-          </NavLink>
-
-          <NavLink to="/dashboard/settings" className="nav-link">
-            <Settings size={18} /> Settings
-          </NavLink>
-
-          <NavLink to="/dashboard/billing" className="nav-link">
-            <CreditCard size={18} /> Billing
-          </NavLink>
+        <nav className="flex flex-col gap-2 text-sm">
+          {[
+            { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+            { to: "/dashboard/resume", icon: FileText, label: "Resume Builder" },
+            { to: "/dashboard/resume-reviews", icon: FileText, label: "Resume Reviews" },
+            { to: "/dashboard/interview", icon: Mic, label: "Interview Prep" },
+            { to: "/dashboard/journal", icon: BookOpen, label: "Career Journal" },
+            { to: "/dashboard/profile", icon: User, label: "Profile" },
+            { to: "/dashboard/settings", icon: Settings, label: "Settings" },
+            { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
+          ].map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-md px-3 py-2 transition
+                 ${
+                   isActive
+                     ? "bg-[#EEF0FF] text-[#3730A3] font-medium"
+                     : "text-gray-700 hover:bg-gray-100"
+                 }`
+              }
+            >
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="flex-1" />
 
-        <NavLink to="/logout" className="nav-link text-red-600">
-          <LogOut size={18} /> Logout
+        <NavLink
+          to="/logout"
+          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+        >
+          <LogOut size={18} />
+          Logout
         </NavLink>
       </aside>
 
       {/* Main */}
       <main className="flex-1 p-10">
-        <header className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-semibold">
-            Dashboard
-          </h2>
+        {loading ? (
+          <DashboardHeaderSkeleton />
+        ) : (
+          <header className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-semibold text-gray-900">
+              {pageTitle}
+            </h2>
 
-          <div className="flex items-center gap-3">
-            {isPro && (
-              <span className="rounded-full bg-green-100 text-green-800 px-3 py-1 text-sm font-medium">
-                Pro
-              </span>
-            )}
-
-            <div className="text-gray-600 bg-white shadow px-4 py-2 rounded-md">
-              {user?.email}
+            <div className="text-sm text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-md">
+              {user?.email || " "}
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         <Outlet />
       </main>

@@ -3,13 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
+function ReviewListSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-6 w-40 rounded bg-muted" />
+        <div className="h-4 w-64 rounded bg-muted" />
+      </div>
+
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="rounded-lg border bg-background p-6 space-y-4"
+        >
+          <div className="h-4 w-48 rounded bg-muted" />
+          <div className="space-y-3">
+            <div className="h-4 w-full rounded bg-muted" />
+            <div className="h-4 w-5/6 rounded bg-muted" />
+          </div>
+          <div className="h-10 w-40 rounded bg-muted" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ResumeReviewHistory() {
   const navigate = useNavigate();
-  const { user, isPro } = useAuth();
+  const { user, isPro, loading: authLoading } = useAuth();
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -18,7 +42,6 @@ export default function ResumeReviewHistory() {
 
     const loadReviews = async () => {
       setLoading(true);
-      setError(null);
 
       let query = supabase
         .from("resume_reviews")
@@ -26,22 +49,16 @@ export default function ResumeReviewHistory() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      // 🔒 Non-Pro users only get the most recent review
+      // Free users only receive most recent review
       if (!isPro) {
         query = query.limit(1);
       }
 
-      const { data, error } = await query;
+      const { data } = await query;
 
       if (!active) return;
 
-      if (error) {
-        setError("We couldn’t load your resume reviews.");
-        setReviews([]);
-      } else {
-        setReviews(data || []);
-      }
-
+      setReviews(data || []);
       setLoading(false);
     };
 
@@ -52,20 +69,9 @@ export default function ResumeReviewHistory() {
     };
   }, [user, isPro]);
 
-  if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-500">
-        Loading resume reviews…
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-10 text-center text-red-600">
-        {error}
-      </div>
-    );
+  // 🔐 Auth or data resolving
+  if (authLoading || loading) {
+    return <ReviewListSkeleton />;
   }
 
   return (
@@ -75,9 +81,10 @@ export default function ResumeReviewHistory() {
         <h1 className="text-2xl font-semibold">
           Resume Reviews
         </h1>
+
         {!isPro && (
           <p className="text-sm text-gray-600 mt-1">
-            Free accounts can view their most recent resume review.
+            Your most recent resume review is saved here.
           </p>
         )}
       </div>
@@ -90,10 +97,10 @@ export default function ResumeReviewHistory() {
       )}
 
       {/* Reviews */}
-      {reviews.map((review, index) => (
+      {reviews.map((review) => (
         <div
           key={review.id}
-          className="rounded-lg bg-white p-6 shadow-sm"
+          className="rounded-lg border bg-background p-6 shadow-sm"
         >
           <p className="text-sm text-gray-500 mb-3">
             {new Date(review.created_at).toLocaleString()}
@@ -102,7 +109,7 @@ export default function ResumeReviewHistory() {
           <div className="space-y-3 leading-relaxed">
             <div>
               <p className="text-sm font-medium text-gray-700">
-                Overall Impression
+                Overall impression
               </p>
               <p className="text-gray-800">
                 {review.results?.overall_impression || "—"}
@@ -111,7 +118,7 @@ export default function ResumeReviewHistory() {
 
             <div>
               <p className="text-sm font-medium text-gray-700">
-                Interview Readiness
+                Interview readiness
               </p>
               <p className="text-gray-800">
                 {review.results?.interview_readiness || "—"}
@@ -127,7 +134,7 @@ export default function ResumeReviewHistory() {
               }
               className="rounded-md border px-5 py-2 text-sm"
             >
-              {isPro ? "View full review" : "View preview"}
+              View review
             </button>
 
             {!isPro && (
@@ -135,24 +142,17 @@ export default function ResumeReviewHistory() {
                 onClick={() => navigate("/dashboard/upgrade")}
                 className="rounded-md bg-black px-5 py-2 text-white text-sm hover:bg-gray-900"
               >
-                Unlock full history
+                Upgrade to Pro
               </button>
             )}
           </div>
-
-          {/* Free-tier explanation */}
-          {!isPro && index === 0 && (
-            <p className="mt-4 text-xs text-gray-500">
-              Upgrade to Pro to access all past resume reviews and export your feedback.
-            </p>
-          )}
         </div>
       ))}
 
-      {/* Pro users: history hint */}
-      {isPro && reviews.length > 1 && (
-        <p className="text-xs text-gray-500">
-          Showing all resume reviews.
+      {/* Free-tier explanation (single, calm) */}
+      {!isPro && reviews.length > 0 && (
+        <p className="text-sm text-gray-500">
+          Upgrade to Pro to view your full review history and export PDFs.
         </p>
       )}
     </div>

@@ -2,79 +2,35 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const {
-    user,
-    isPro,
-    loading: authLoading,
-    profileLoading,
-  } = useAuth();
+  const { user, isPro, loading: authLoading } = useAuth();
 
   const [latestReview, setLatestReview] = useState(null);
-  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  /**
-   * ⏳ HARD STOP
-   * Do NOT render dashboard content until auth + profile are resolved
-   * This removes the “slow login / hanging” feeling
-   */
-  if (authLoading || profileLoading) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-gray-600">
-            Loading your account…
-          </p>
-        </header>
-
-        <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 w-48 bg-gray-200 rounded" />
-            <div className="h-3 w-64 bg-gray-200 rounded" />
-            <div className="h-10 w-40 bg-gray-200 rounded mt-6" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * 🔐 Not logged in → redirect once (no loops)
-   */
-  useEffect(() => {
-    if (!user) {
-      navigate("/login", {
-        replace: true,
-        state: { returnTo: "/dashboard" },
-      });
-    }
-  }, [user, navigate]);
-
-  /**
-   * 📦 Load latest resume review (safe, after auth)
-   */
   useEffect(() => {
     if (!user) return;
 
     let active = true;
 
     const loadLatestReview = async () => {
-      setLoadingReviews(true);
+      setLoading(true);
 
       const { data } = await supabase
         .from("resume_reviews")
         .select("id, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
 
       if (!active) return;
 
-      setLatestReview(data?.[0] ?? null);
-      setLoadingReviews(false);
+      setLatestReview(data || null);
+      setLoading(false);
     };
 
     loadLatestReview();
@@ -84,79 +40,128 @@ export default function Dashboard() {
     };
   }, [user]);
 
+  /* ──────────────────────────────
+     AUTH GATE ONLY (no data blocking)
+     ────────────────────────────── */
+  if (authLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
+    <div className="max-w-4xl space-y-8">
       {/* Header */}
-      <header>
+      <div>
         <h1 className="text-2xl font-semibold">
           Welcome back
         </h1>
         <p className="text-gray-600">
-          Continue improving your resume with BloomBold.
+          Here’s where your resume progress lives.
         </p>
-      </header>
+      </div>
 
       {/* Resume Reviews Card */}
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-lg font-semibold">
-          Resume Reviews
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold">
+            Resume Reviews
+          </h2>
 
-        <p className="text-sm text-gray-600">
-          {isPro
-            ? "View your past reviews or run a new one."
-            : "Free accounts can view their most recent resume review."}
-        </p>
+          {!isPro && (
+            <p className="text-sm text-gray-500">
+              Free accounts include up to 3 resume reviews.
+            </p>
+          )}
+        </div>
 
-        {/* Latest Review */}
-        {!loadingReviews && latestReview && (
-          <div className="flex items-center justify-between rounded-md border p-4">
-            <span className="text-sm text-gray-700">
-              Last review:{" "}
-              {new Date(
-                latestReview.created_at
-              ).toLocaleDateString()}
-            </span>
+        {/* Loading state (DATA ONLY) */}
+        {loading && (
+          <p className="text-sm text-gray-500">
+            Loading your latest review…
+          </p>
+        )}
+
+        {/* No reviews yet */}
+        {!loading && !latestReview && (
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Start with your first resume review — it’s free.
+            </p>
 
             <button
-              onClick={() =>
-                navigate(
-                  `/dashboard/resume-reviews/${latestReview.id}`
-                )
-              }
-              className="text-sm font-medium underline"
+              onClick={() => navigate("/resume-review")}
+              className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900"
             >
-              View review
+              Run your first resume review
             </button>
           </div>
         )}
 
-        {/* Empty State */}
-        {!loadingReviews && !latestReview && (
-          <p className="text-sm text-gray-600">
-            Your resume reviews will appear here once you run
-            your first analysis.
-          </p>
+        {/* Has at least one review */}
+        {!loading && latestReview && (
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Most recent review:
+            </p>
+
+            <div className="flex items-center justify-between rounded border p-4">
+              <span className="text-sm text-gray-700">
+                {new Date(latestReview.created_at).toLocaleString()}
+              </span>
+
+              <button
+                onClick={() =>
+                  navigate(`/dashboard/resume-reviews/${latestReview.id}`)
+                }
+                className="text-sm font-medium underline"
+              >
+                View review
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Want feedback on another version or role?
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => navigate("/resume-review")}
+                className="rounded-md border px-5 py-2 text-sm"
+              >
+                Run another review
+              </button>
+
+              {!isPro && (
+                <button
+                  onClick={() => navigate("/dashboard/upgrade")}
+                  className="rounded-md bg-black px-5 py-2 text-sm text-white hover:bg-gray-900"
+                >
+                  Upgrade to Pro
+                </button>
+              )}
+
+              {isPro && (
+                <button
+                  onClick={() => navigate("/dashboard/resume-reviews")}
+                  className="rounded-md border px-5 py-2 text-sm"
+                >
+                  View full history
+                </button>
+              )}
+            </div>
+
+            {!isPro && (
+              <p className="text-sm text-gray-500">
+                Upgrade to Pro to revisit past reviews and run unlimited analyses.
+              </p>
+            )}
+
+            {isPro && (
+              <p className="text-sm text-green-700">
+                Pro — unlimited resume reviews enabled.
+              </p>
+            )}
+          </div>
         )}
-
-        {/* Primary CTA */}
-        <div className="pt-4 flex gap-4">
-          <button
-            onClick={() => navigate("/resume-review")}
-            className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900"
-          >
-            Run another resume review
-          </button>
-
-          {!isPro && (
-            <button
-              onClick={() => navigate("/dashboard/upgrade")}
-              className="text-sm underline"
-            >
-              Upgrade to Pro
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

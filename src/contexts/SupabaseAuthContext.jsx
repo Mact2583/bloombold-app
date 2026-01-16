@@ -7,171 +7,134 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
 
-  // ✅ This is the ONLY "auth is resolving" flag used by ProtectedRoute
+  /**
+   * 🔐 AUTH LOADING
+   * This is the ONLY flag allowed to gate rendering.
+   * It MUST always resolve.
+   */
   const [loading, setLoading] = useState(true);
 
-  // Profile-driven flags
+  /**
+   * 💳 PROFILE FLAGS
+   * These MUST NEVER block app render.
+   */
   const [isPro, setIsPro] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  const channelRef = useRef(null);
-  const mountedRef = useRef(true);
+  // Prevent double auth unlocks
+  const authResolvedRef = useRef(false);
 
-  const safeSet = (fn) => {
-    if (mountedRef.current) fn();
-  };
-
-  const clearProfileState = () => {
-    safeSet(() => {
-      setIsPro(false);
-      setProfileLoading(false);
-    });
-  };
-
-  const removeProfileChannel = async () => {
-    if (channelRef.current) {
-      try {
-        await supabase.removeChannel(channelRef.current);
-      } catch {
-        // ignore
-      }
-      channelRef.current = null;
-    }
-  };
-
-  const subscribeToProfile = async (userId) => {
-    await removeProfileChannel();
-
-    channelRef.current = supabase
-      .channel(`profiles_${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${userId}`,
-        },
-        (payload) => {
-          const nextIsPro =
-            payload?.new?.is_pro ?? payload?.record?.is_pro;
-
-          if (typeof nextIsPro !== "undefined") {
-            safeSet(() => setIsPro(Boolean(nextIsPro)));
-          }
-        }
-      )
-      .subscribe();
-  };
-
+  // --------------------------------------------
+  // Fetch profile flags (NON-BLOCKING)
+  // --------------------------------------------
   const fetchProfileFlags = async (userId) => {
     if (!userId) return;
 
-    safeSet(() => setProfileLoading(true));
+    setProfileLoading(true);
 
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, is_pro")
+        .select("is_pro")
         .eq("id", userId)
         .single();
 
-      if (error) {
-        console.error("fetchProfileFlags error:", error);
-        safeSet(() => setIsPro(false));
-        return;
+      if (!error && data) {
+        setIsPro(Boolean(data.is_pro));
+      } else {
+        setIsPro(false);
       }
-
-      safeSet(() => setIsPro(Boolean(data?.is_pro)));
-    } catch (e) {
-      console.error("fetchProfileFlags exception:", e);
-      safeSet(() => setIsPro(false));
+    } catch {
+      setIsPro(false);
     } finally {
-      safeSet(() => setProfileLoading(false));
+      setProfileLoading(false);
     }
   };
 
   const refreshProfile = async () => {
-    if (!user?.id) return;
-    await fetchProfileFlags(user.id);
+    if (user?.id) {
+      await fetchProfileFlags(user.id);
+    }
   };
 
+  // --------------------------------------------
+  // Init auth session (MUST always complete)
+  // --------------------------------------------
   useEffect(() => {
-    mountedRef.current = true;
+    let mounted = true;
+    let realtimeChannel = null;
+
+    const resolveAuthOnce = () => {
+      if (!authResolvedRef.current) {
+        authResolvedRef.current = true;
+        setLoading(false);
+      }
+    };
 
     const init = async () => {
-      safeSet(() => setLoading(true));
-
       try {
         const {
-          data: { session: initialSession },
-          error,
+          data: { session },
         } = await supabase.auth.getSession();
 
-        if (error) console.error("getSession error:", error);
+        if (!mounted) return;
 
-        safeSet(() => {
-          setSession(initialSession ?? null);
-          setUser(initialSession?.user ?? null);
-        });
+        setSession(session ?? null);
+        setUser(session?.user ?? null);
 
-        if (initialSession?.user?.id) {
-          await fetchProfileFlags(initialSession.user.id);
-          await subscribeToProfile(initialSession.user.id);
-        } else {
-          await removeProfileChannel();
-          clearProfileState();
+        // 🔑 AUTH IS NOW RESOLVED — ALWAYS
+        resolveAuthOnce();
+
+        // Profile loads AFTER auth unlock
+        if (session?.user?.id) {
+          fetchProfileFlags(session.user.id);
+
+          realtimeChannel = supabase
+            .channel(`profiles_${session.user.id}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "*",
+                schema: "public",
+                table: "profiles",
+                filter: `id=eq.${session.user.id}`,
+              },
+              (payload) => {
+                if (payload?.new?.is_pro !== undefined) {
+                  setIsPro(Boolean(payload.new.is_pro));
+                }
+              }
+            )
+            .subscribe();
         }
-      } catch (e) {
-        console.error("init auth exception:", e);
-        await removeProfileChannel();
-        clearProfileState();
-        safeSet(() => {
-          setSession(null);
-          setUser(null);
-        });
-      } finally {
-        // ✅ CRITICAL: auth is now resolved
-        safeSet(() => setLoading(false));
+      } catch {
+        resolveAuthOnce();
       }
     };
 
     init();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, nextSession) => {
-        // ✅ Ensure we never get stuck in "Checking session..."
-        safeSet(() => setLoading(true));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession ?? null);
+      setUser(nextSession?.user ?? null);
 
-        safeSet(() => {
-          setSession(nextSession ?? null);
-          setUser(nextSession?.user ?? null);
-        });
+      resolveAuthOnce();
 
-        try {
-          if (!nextSession?.user?.id) {
-            await removeProfileChannel();
-            clearProfileState();
-            return;
-          }
-
-          await fetchProfileFlags(nextSession.user.id);
-          await subscribeToProfile(nextSession.user.id);
-        } catch (e) {
-          console.error("onAuthStateChange exception:", e);
-          await removeProfileChannel();
-          clearProfileState();
-        } finally {
-          // ✅ CRITICAL: end auth resolving phase
-          safeSet(() => setLoading(false));
-        }
+      if (nextSession?.user?.id) {
+        fetchProfileFlags(nextSession.user.id);
+      } else {
+        setIsPro(false);
       }
-    );
+    });
 
     return () => {
-      mountedRef.current = false;
-      authListener?.subscription?.unsubscribe?.();
-      removeProfileChannel();
+      mounted = false;
+      subscription?.unsubscribe();
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, []);
 
@@ -179,19 +142,25 @@ export function AuthProvider({ children }) {
     () => ({
       session,
       user,
-      loading,
-      isPro,
-      profileLoading,
+      loading,          // ONLY auth gate
+      isPro,            // capability flag
+      profileLoading,   // informational only
       refreshProfile,
     }),
     [session, user, loading, isPro, profileLoading]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
   return ctx;
 }
