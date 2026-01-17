@@ -1,7 +1,12 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-import { AuthProvider } from "./contexts/SupabaseAuthContext";
+import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 
 // Public pages
 import Login from "@/pages/Login";
@@ -29,7 +34,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* FORCE LOGIN ON ROOT */}
+
+          {/* 🔐 FORCE LOGIN ON ROOT */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Public */}
@@ -41,7 +47,7 @@ function App() {
           {/* Public MVP */}
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected App */}
+          {/* Protected */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
@@ -57,6 +63,7 @@ function App() {
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/login" replace />} />
+
         </Routes>
       </Router>
     </AuthProvider>
