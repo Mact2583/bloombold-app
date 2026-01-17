@@ -1,10 +1,9 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 
 // Public pages
-import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Logout from "@/pages/Logout";
@@ -38,22 +37,19 @@ function App() {
       <Router>
         <Routes>
 
-          {/* =====================
-              Public Routes
-          ====================== */}
-          import { Navigate } from "react-router-dom";
+          {/* Root → App */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* Public MVP entry */}
+          {/* Public MVP */}
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* =====================
-              Protected App
-          ====================== */}
+          {/* Protected App */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
 
