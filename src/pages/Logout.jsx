@@ -1,18 +1,23 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function Logout() {
+const Logout = () => {
   useEffect(() => {
-    async function doLogout() {
+    const doLogout = async () => {
       await supabase.auth.signOut();
+
+      // Force a clean navigation (avoids Vercel SPA edge cases)
       window.location.href = "/login";
-    }
+    };
+
     doLogout();
   }, []);
 
   return (
-    <div className="p-6 text-center text-gray-600">
-      Logging out...
+    <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+      Signing you out…
     </div>
   );
-}
+};
+
+export default Logout;
