@@ -6,12 +6,12 @@ export default function Logout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const doLogout = async () => {
+    const logout = async () => {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     };
 
-    doLogout();
+    logout();
   }, [navigate]);
 
   return null;
