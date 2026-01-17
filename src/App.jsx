@@ -1,3 +1,4 @@
+console.log("BloomBold build marker:", "JAN-16-FORCE-LOGIN");
 import React from "react";
 import {
   BrowserRouter as Router,
