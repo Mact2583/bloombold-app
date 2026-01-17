@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { session } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,12 +21,25 @@ export default function ResumeReview() {
       return;
     }
 
+    if (!session?.access_token) {
+      setMessage("Your session has expired. Please log in again.");
+      setMessageType("error");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke(
         "analyze-resume",
-        { body: { resumeText } }
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: { resumeText },
+        }
       );
 
       if (data?.upgradeRequired) {
@@ -38,6 +51,7 @@ export default function ResumeReview() {
       }
 
       if (error || data?.error) {
+        console.error("Analyze error:", error || data?.error);
         setMessage(
           "We couldn’t analyze your resume right now. Please try again."
         );
@@ -46,7 +60,8 @@ export default function ResumeReview() {
       }
 
       navigate("/dashboard");
-    } catch {
+    } catch (err) {
+      console.error("Unexpected error:", err);
       setMessage("Something went wrong. Please try again.");
       setMessageType("error");
     } finally {
@@ -72,7 +87,15 @@ export default function ResumeReview() {
       />
 
       {message && (
-        <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
+        <div
+          className={`rounded-md p-4 text-sm ${
+            messageType === "error"
+              ? "bg-red-50 text-red-800"
+              : messageType === "upgrade"
+              ? "bg-yellow-50 text-yellow-900"
+              : "bg-blue-50 text-blue-800"
+          }`}
+        >
           {message}
         </div>
       )}

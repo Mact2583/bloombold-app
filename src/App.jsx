@@ -1,16 +1,12 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
+import { AuthProvider } from "./contexts/SupabaseAuthContext";
 
 // Public pages
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import Logout from "@/pages/Logout";
 import AuthCallback from "@/pages/auth/Callback";
 import ResumeReview from "@/pages/ResumeReview";
 
@@ -28,45 +24,39 @@ import Settings from "@/pages/dashboard/Settings";
 import Billing from "@/pages/dashboard/Billing";
 import Upgrade from "@/pages/dashboard/Upgrade";
 
-// Resume review flow
-import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
-import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
-import ResumeReviewExport from "@/pages/dashboard/ResumeReviewExport";
-
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* FORCE LOGIN ON ROOT */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
+          {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
+          {/* Public MVP */}
           <Route path="/resume-review" element={<ResumeReview />} />
 
+          {/* Protected App */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
-              <Route path="resume-reviews" element={<ResumeReviewHistory />} />
-              <Route
-                path="resume-reviews/:id"
-                element={<ResumeReviewDetail />}
-              />
-              <Route
-                path="resume-reviews/:id/export"
-                element={<ResumeReviewExport />}
-              />
-              <Route path="upgrade" element={<Upgrade />} />
-              <Route path="billing" element={<Billing />} />
               <Route path="resume" element={<Resume />} />
               <Route path="interview" element={<Interview />} />
               <Route path="journal" element={<Journal />} />
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="upgrade" element={<Upgrade />} />
             </Route>
           </Route>
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
