@@ -1,23 +1,18 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 
-const Logout = () => {
+export default function Logout() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const doLogout = async () => {
       await supabase.auth.signOut();
-
-      // Force a clean navigation (avoids Vercel SPA edge cases)
-      window.location.href = "/login";
+      navigate("/login", { replace: true });
     };
 
     doLogout();
-  }, []);
+  }, [navigate]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-      Signing you out…
-    </div>
-  );
-};
-
-export default Logout;
+  return null;
+}

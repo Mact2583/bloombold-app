@@ -1,64 +1,117 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-/**
- * Dashboard-level loading skeleton.
- * Mirrors the app shell so there is no auth flash.
- */
-function AppShellSkeleton() {
-  return (
-    <div className="min-h-screen flex bg-muted/30">
-      {/* Sidebar skeleton */}
-      <aside className="hidden md:flex w-64 flex-col gap-4 p-4 border-r bg-background">
-        <div className="h-6 w-32 rounded bg-muted animate-pulse" />
-        <div className="space-y-2 mt-6">
-          <div className="h-4 w-full rounded bg-muted animate-pulse" />
-          <div className="h-4 w-5/6 rounded bg-muted animate-pulse" />
-          <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
-        </div>
-        <div className="mt-auto h-10 w-full rounded bg-muted animate-pulse" />
-      </aside>
+export default function ResumeReview() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-      {/* Main content skeleton */}
-      <main className="flex-1 p-6 space-y-6">
-        <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+  const [resumeText, setResumeText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [limitHit, setLimitHit] = useState(false);
+  const [used, setUsed] = useState(0);
+  const [limit, setLimit] = useState(0);
+  const [error, setError] = useState(null);
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-40 rounded-lg bg-muted animate-pulse" />
-          <div className="h-40 rounded-lg bg-muted animate-pulse" />
-        </div>
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
 
-        <div className="space-y-3">
-          <div className="h-4 w-full rounded bg-muted animate-pulse" />
-          <div className="h-4 w-5/6 rounded bg-muted animate-pulse" />
-          <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
-        </div>
-      </main>
-    </div>
-  );
-}
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
 
-export default function ProtectedRoute() {
-  const location = useLocation();
-  const { user, loading: authLoading, profileLoading } = useAuth();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_FUNCTION_URL}/analyze-resume`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ resumeText }),
+        }
+      );
 
-  // ⏳ Auth + profile resolving → render app shell skeleton
-  if (authLoading || profileLoading) {
-    return <AppShellSkeleton />;
-  }
+      const data = await res.json();
 
-  // 🔐 Not authenticated → redirect to login
-  if (!user) {
+      if (data.upgradeRequired) {
+        setLimitHit(true);
+        setUsed(data.used);
+        setLimit(data.limit);
+        return;
+      }
+
+      if (!data.success) {
+        throw new Error("Analysis failed");
+      }
+
+      navigate(`/dashboard/resume-reviews/${data.reviewId}`);
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚧 FREE LIMIT STATE
+  if (limitHit) {
     return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ returnTo: location.pathname }}
-      />
+      <div className="max-w-xl mx-auto mt-16 space-y-6 text-center">
+        <h1 className="text-2xl font-semibold">
+          You’ve reached the free review limit
+        </h1>
+
+        <p className="text-gray-600">
+          Free accounts include up to {limit} resume reviews.
+        </p>
+
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => navigate("/dashboard/upgrade")}
+            className="rounded-md bg-black px-6 py-3 text-white font-medium"
+          >
+            Upgrade to Pro
+          </button>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="text-sm text-gray-600 underline"
+          >
+            Return to dashboard
+          </button>
+        </div>
+      </div>
     );
   }
 
-  // ✅ Authenticated → render protected content
-  return <Outlet />;
-}
+  // 📝 NORMAL FORM
+  return (
+    <div className="max-w-xl mx-auto mt-16 space-y-6">
+      <h1 className="text-2xl font-semibold text-center">
+        Resume Review
+      </h1>
 
+      <textarea
+        value={resumeText}
+        onChange={(e) => setResumeText(e.target.value)}
+        rows={10}
+        className="w-full rounded-md border p-3"
+        placeholder="Paste your resume text here..."
+      />
+
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={loading || !resumeText.trim()}
+        className="w-full rounded-md bg-black px-6 py-3 text-white font-medium disabled:opacity-50"
+      >
+        {loading ? "Analyzing…" : "Review Resume"}
+      </button>
+    </div>
+  );
+}
