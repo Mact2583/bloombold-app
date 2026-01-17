@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import { AuthProvider } from "./contexts/SupabaseAuthContext.jsx";
 
@@ -37,7 +42,7 @@ function App() {
       <Router>
         <Routes>
 
-          {/* Root → App */}
+          {/* Root → Dashboard (auth handled by ProtectedRoute) */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           {/* Public */}
@@ -53,10 +58,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
 
-              {/* Dashboard home */}
               <Route index element={<Dashboard />} />
 
-              {/* Resume reviews */}
               <Route path="resume-reviews" element={<ResumeReviewHistory />} />
               <Route path="resume-reviews/:id" element={<ResumeReviewDetail />} />
               <Route
@@ -64,11 +67,9 @@ function App() {
                 element={<ResumeReviewExport />}
               />
 
-              {/* Billing / Upgrade */}
               <Route path="upgrade" element={<Upgrade />} />
               <Route path="billing" element={<Billing />} />
 
-              {/* Other tools */}
               <Route path="resume" element={<Resume />} />
               <Route path="interview" element={<Interview />} />
               <Route path="journal" element={<Journal />} />
