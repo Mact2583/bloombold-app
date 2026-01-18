@@ -25,19 +25,17 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { user, isPro, loading: authLoading } = useAuth();
 
-  // 🚪 If user becomes Pro, send them to Billing
+  // ✅ If user becomes Pro, return them to dashboard
   useEffect(() => {
     if (!authLoading && isPro) {
-      navigate("/dashboard/billing", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
   }, [authLoading, isPro, navigate]);
 
-  // 🔐 Auth resolving
   if (authLoading) {
     return <UpgradeSkeleton />;
   }
 
-  // 🔐 Not logged in → go to login with return path
   if (!user) {
     navigate("/login", {
       replace: true,
@@ -46,73 +44,64 @@ export default function Upgrade() {
     return null;
   }
 
-  // 🚀 Stripe checkout
-  const handleUpgrade = async () => {
+  const startCheckout = async (billingCycle) => {
     try {
       const { data, error } = await supabase.functions.invoke(
         "create-checkout-session",
         {
-          body: {
-            returnUrl:
-              window.location.origin + "/dashboard/billing",
-          },
+          body: { billingCycle },
         }
       );
 
       if (error || !data?.url) {
-        alert(
-          "We couldn’t start checkout right now. Please try again in a moment."
-        );
+        alert("We couldn’t start checkout right now. Please try again.");
         return;
       }
 
       window.location.href = data.url;
     } catch {
-      alert(
-        "Something went wrong starting checkout. Please try again."
-      );
+      alert("Something went wrong starting checkout. Please try again.");
     }
   };
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
           BloomBold Pro
         </h1>
         <p className="text-gray-600 mt-2">
-          For ongoing resume refinement and long-term career planning.
+          Unlimited resume reviews, full history, and exports.
         </p>
       </div>
 
-      {/* Plan Card */}
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
-        <p className="text-sm text-gray-700">
-          Pro is designed for people who want to iterate,
-          revisit feedback, and keep a record of their progress.
-        </p>
-
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• Unlimited AI resume reviews</li>
-          <li>• Full access to your review history</li>
-          <li>• PDF exports for saving or sharing</li>
-          <li>• Ongoing improvements as features evolve</li>
+          <li>• Full access to review history</li>
+          <li>• PDF exports</li>
+          <li>• Ongoing feature improvements</li>
         </ul>
 
         <button
-          onClick={handleUpgrade}
+          onClick={() => startCheckout("monthly")}
           className="w-full rounded-md bg-[#7D77DF] px-6 py-3 text-white font-medium hover:bg-[#6A64D8]"
         >
-          Upgrade to Pro
+          $9 / month — Upgrade to Pro
+        </button>
+
+        <button
+          onClick={() => startCheckout("annual")}
+          className="w-full rounded-md border px-6 py-3 text-sm font-medium"
+        >
+          $79 / year — Best value
         </button>
 
         <p className="text-xs text-gray-500 text-center">
-          Secure checkout via Stripe. Cancel anytime from billing.
+          Secure checkout via Stripe. Cancel anytime.
         </p>
       </div>
 
-      {/* Back */}
       <div className="text-center">
         <button
           onClick={() => navigate("/dashboard")}

@@ -17,9 +17,10 @@ export default function Dashboard() {
     let active = true;
 
     const loadLatestReview = async () => {
-      setLoading(true);
+      // Only show loading the first time
+      setLoading((prev) => (prev ? true : false));
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("resume_reviews")
         .select("id, created_at")
         .eq("user_id", user.id)
@@ -29,7 +30,13 @@ export default function Dashboard() {
 
       if (!active) return;
 
-      setLatestReview(data || null);
+      if (error) {
+        console.error("Failed to load latest review:", error);
+        setLatestReview(null);
+      } else {
+        setLatestReview(data || null);
+      }
+
       setLoading(false);
     };
 
@@ -51,9 +58,7 @@ export default function Dashboard() {
     <div className="max-w-4xl space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold">
-          Welcome back
-        </h1>
+        <h1 className="text-2xl font-semibold">Welcome back</h1>
         <p className="text-gray-600">
           Here’s where your resume progress lives.
         </p>
@@ -62,9 +67,7 @@ export default function Dashboard() {
       {/* Resume Reviews Card */}
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">
-            Resume Reviews
-          </h2>
+          <h2 className="text-lg font-semibold">Resume Reviews</h2>
 
           {!isPro && (
             <p className="text-sm text-gray-500">
@@ -99,9 +102,7 @@ export default function Dashboard() {
         {/* Has at least one review */}
         {!loading && latestReview && (
           <div className="space-y-4">
-            <p className="text-gray-600">
-              Most recent review:
-            </p>
+            <p className="text-gray-600">Most recent review:</p>
 
             <div className="flex items-center justify-between rounded border p-4">
               <span className="text-sm text-gray-700">

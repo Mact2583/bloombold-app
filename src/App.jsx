@@ -16,7 +16,6 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-
           {/* Entry */}
           <Route path="/" element={<Navigate to="/resume-review" replace />} />
 
@@ -64,7 +63,6 @@ export default function App() {
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/resume-review" replace />} />
-
         </Routes>
       </Router>
     </AuthProvider>

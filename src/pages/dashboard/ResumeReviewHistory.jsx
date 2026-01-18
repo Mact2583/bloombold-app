@@ -41,7 +41,8 @@ export default function ResumeReviewHistory() {
     let active = true;
 
     const loadReviews = async () => {
-      setLoading(true);
+      // Only show loading the first time
+      setLoading((prev) => (prev ? true : false));
 
       let query = supabase
         .from("resume_reviews")
@@ -54,11 +55,17 @@ export default function ResumeReviewHistory() {
         query = query.limit(1);
       }
 
-      const { data } = await query;
+      const { data, error } = await query;
 
       if (!active) return;
 
-      setReviews(data || []);
+      if (error) {
+        console.error("Failed to load resume reviews:", error);
+        setReviews([]);
+      } else {
+        setReviews(data || []);
+      }
+
       setLoading(false);
     };
 
@@ -69,8 +76,10 @@ export default function ResumeReviewHistory() {
     };
   }, [user, isPro]);
 
-  // 🔐 Auth or data resolving
-  if (authLoading || loading) {
+  /* ──────────────────────────────
+     AUTH GATE ONLY
+     ────────────────────────────── */
+  if (authLoading) {
     return <ReviewListSkeleton />;
   }
 
@@ -78,9 +87,7 @@ export default function ResumeReviewHistory() {
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold">
-          Resume Reviews
-        </h1>
+        <h1 className="text-2xl font-semibold">Resume Reviews</h1>
 
         {!isPro && (
           <p className="text-sm text-gray-600 mt-1">
@@ -89,68 +96,72 @@ export default function ResumeReviewHistory() {
         )}
       </div>
 
+      {/* Data loading */}
+      {loading && <ReviewListSkeleton />}
+
       {/* Empty state */}
-      {reviews.length === 0 && (
+      {!loading && reviews.length === 0 && (
         <p className="text-gray-600">
           Your resume reviews will appear here once you run your first analysis.
         </p>
       )}
 
       {/* Reviews */}
-      {reviews.map((review) => (
-        <div
-          key={review.id}
-          className="rounded-lg border bg-background p-6 shadow-sm"
-        >
-          <p className="text-sm text-gray-500 mb-3">
-            {new Date(review.created_at).toLocaleString()}
-          </p>
+      {!loading &&
+        reviews.map((review) => (
+          <div
+            key={review.id}
+            className="rounded-lg border bg-background p-6 shadow-sm"
+          >
+            <p className="text-sm text-gray-500 mb-3">
+              {new Date(review.created_at).toLocaleString()}
+            </p>
 
-          <div className="space-y-3 leading-relaxed">
-            <div>
-              <p className="text-sm font-medium text-gray-700">
-                Overall impression
-              </p>
-              <p className="text-gray-800">
-                {review.results?.overall_impression || "—"}
-              </p>
+            <div className="space-y-3 leading-relaxed">
+              <div>
+                <p className="text-sm font-medium text-gray-700">
+                  Overall impression
+                </p>
+                <p className="text-gray-800">
+                  {review.results?.overall_impression || "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">
+                  Interview readiness
+                </p>
+                <p className="text-gray-800">
+                  {review.results?.interview_readiness || "—"}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className="text-sm font-medium text-gray-700">
-                Interview readiness
-              </p>
-              <p className="text-gray-800">
-                {review.results?.interview_readiness || "—"}
-              </p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="mt-6 flex flex-wrap gap-4">
-            <button
-              onClick={() =>
-                navigate(`/dashboard/resume-reviews/${review.id}`)
-              }
-              className="rounded-md border px-5 py-2 text-sm"
-            >
-              View review
-            </button>
-
-            {!isPro && (
+            {/* Actions */}
+            <div className="mt-6 flex flex-wrap gap-4">
               <button
-                onClick={() => navigate("/dashboard/upgrade")}
-                className="rounded-md bg-black px-5 py-2 text-white text-sm hover:bg-gray-900"
+                onClick={() =>
+                  navigate(`/dashboard/resume-reviews/${review.id}`)
+                }
+                className="rounded-md border px-5 py-2 text-sm"
               >
-                Upgrade to Pro
+                View review
               </button>
-            )}
-          </div>
-        </div>
-      ))}
 
-      {/* Free-tier explanation (single, calm) */}
-      {!isPro && reviews.length > 0 && (
+              {!isPro && (
+                <button
+                  onClick={() => navigate("/dashboard/upgrade")}
+                  className="rounded-md bg-black px-5 py-2 text-white text-sm hover:bg-gray-900"
+                >
+                  Upgrade to Pro
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+      {/* Free-tier explanation */}
+      {!isPro && !loading && reviews.length > 0 && (
         <p className="text-sm text-gray-500">
           Upgrade to Pro to view your full review history and export PDFs.
         </p>

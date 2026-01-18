@@ -32,10 +32,11 @@ export default function ResumeReviewDetail() {
     let active = true;
 
     const loadReview = async () => {
-      setLoading(true);
+      // Only show loading the first time
+      setLoading((prev) => (prev ? true : false));
 
-      // 🔍 Load requested review (SAFE)
-      const { data: reviewData } = await supabase
+      // 1️⃣ Load requested review
+      const { data: reviewData, error: reviewError } = await supabase
         .from("resume_reviews")
         .select("id, created_at, target_role, results")
         .eq("id", id)
@@ -44,8 +45,15 @@ export default function ResumeReviewDetail() {
 
       if (!active) return;
 
-      // 🔍 Load most recent review
-      const { data: latest } = await supabase
+      if (reviewError) {
+        console.error("Failed to load review:", reviewError);
+        setReview(null);
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ Load most recent review ID
+      const { data: latest, error: latestError } = await supabase
         .from("resume_reviews")
         .select("id")
         .eq("user_id", user.id)
@@ -55,10 +63,15 @@ export default function ResumeReviewDetail() {
 
       if (!active) return;
 
+      if (latestError) {
+        console.error("Failed to load latest review:", latestError);
+      }
+
       setReview(reviewData || null);
       setIsMostRecent(
         Boolean(reviewData && latest && reviewData.id === latest.id)
       );
+
       setLoading(false);
     };
 
@@ -69,12 +82,19 @@ export default function ResumeReviewDetail() {
     };
   }, [id, user]);
 
-  // ⏳ Auth or data loading
-  if (authLoading || loading) {
+  /* ──────────────────────────────
+     AUTH GATE ONLY
+     ────────────────────────────── */
+  if (authLoading) {
     return <ReviewLoadingSkeleton />;
   }
 
-  // 🔐 Not logged in
+  /* ⏳ Data loading */
+  if (loading) {
+    return <ReviewLoadingSkeleton />;
+  }
+
+  // 🔐 Not logged in (safety fallback)
   if (!user) {
     return <Navigate to="/login" replace />;
   }

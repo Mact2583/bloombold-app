@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { loading: authLoading } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,18 +34,10 @@ export default function ResumeReview() {
       }
 
       /**
-       * ✅ SUCCESS → DASHBOARD IS THE SOURCE OF TRUTH
-       * Logged-in users go straight there
-       * Logged-out users authenticate, then land there
+       * ✅ ALWAYS go to dashboard
+       * ProtectedRoute decides access once auth is ready
        */
-      if (user) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/login", {
-          replace: true,
-          state: { returnTo: "/dashboard" },
-        });
-      }
+      navigate("/dashboard", { replace: true });
     } catch {
       setError(
         "We couldn’t analyze your resume right now. Please try again."
