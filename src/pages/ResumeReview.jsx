@@ -33,15 +33,6 @@ export default function ResumeReview() {
 
       const data = await res.json();
 
-      // 🔐 Not logged in (defensive, even though route is protected)
-      if (res.status === 401 || data?.error === "Unauthorized") {
-        setMessage(
-          "Please log in to continue. Your resume feedback will be waiting for you."
-        );
-        setMessageType("info");
-        return;
-      }
-
       // 🚧 Free limit reached
       if (data?.upgradeRequired) {
         setMessage(
@@ -51,7 +42,7 @@ export default function ResumeReview() {
         return;
       }
 
-      // ❌ Unexpected error
+      // ❌ Backend error
       if (!res.ok || data?.error) {
         setMessage(
           "We couldn’t analyze your resume right now. Please try again in a moment."
@@ -60,10 +51,13 @@ export default function ResumeReview() {
         return;
       }
 
-      // ✅ Success
-      // If you already have a results page, navigate there.
-      // Otherwise, this is where results rendering can be added later.
-      navigate("/dashboard/resume-reviews");
+      // ✅ Success — for MVP we stay on page
+      setMessage("Your resume was analyzed successfully.");
+      setMessageType("info");
+
+      // (Later you can route to results/history here)
+      // navigate("/dashboard/resume-reviews");
+
     } catch {
       setMessage(
         "Something went wrong while analyzing your resume. Please try again."
