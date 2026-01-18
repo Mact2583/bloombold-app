@@ -15,34 +15,37 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ Redirect ONLY after auth is resolved
+  /**
+   * ✅ Redirect AFTER auth resolves (never during render)
+   */
   useEffect(() => {
     if (!loading && user) {
       navigate(returnTo, { replace: true });
     }
-  }, [loading, user, returnTo, navigate]);
+  }, [loading, user, navigate, returnTo]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+      }
+    } catch {
+      setError("Unable to log in. Please try again.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    // AuthProvider will handle session update
-    setSubmitting(false);
   };
 
-  // ⏳ While auth is resolving, do not render form or redirect
+  // ⏳ While auth is resolving, render nothing
   if (loading) {
     return null;
   }
