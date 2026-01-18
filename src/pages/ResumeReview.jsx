@@ -1,34 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [messageType, setMessageType] = useState("info");
-
-  // 🔁 Redirect AFTER auth is confirmed
-  useEffect(() => {
-    if (success && user && !loading) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [success, user, loading, navigate]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
-    setMessage(null);
+    setError(null);
 
     if (!resumeText.trim()) {
-      setMessage("Please paste your resume to continue.");
-      setMessageType("info");
+      setError("Please paste your resume to continue.");
       return;
     }
 
-    setSubmitting(true);
+    setLoading(true);
 
     try {
       const res = await fetch("/api/analyze-resume", {
@@ -37,33 +27,25 @@ export default function ResumeReview() {
         body: JSON.stringify({ resumeText }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data?.error) {
-        setMessage(
-          "We couldn’t analyze your resume right now. Please try again."
-        );
-        setMessageType("error");
-        return;
+      if (!res.ok) {
+        throw new Error("Analysis failed");
       }
 
-      if (data?.upgradeRequired) {
-        setMessage(
-          "You’ve used your free resume reviews. Upgrade to Pro to continue."
-        );
-        setMessageType("upgrade");
-        return;
+      // ✅ Analysis complete → enforce auth
+      if (user) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", {
+          replace: true,
+          state: { returnTo: "/dashboard" },
+        });
       }
-
-      // ✅ mark success — redirect handled by effect
-      setSuccess(true);
-      setMessage("Your resume was analyzed successfully.");
-      setMessageType("info");
     } catch {
-      setMessage("Something went wrong. Please try again.");
-      setMessageType("error");
+      setError(
+        "We couldn’t analyze your resume right now. Please try again."
+      );
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -84,26 +66,18 @@ export default function ResumeReview() {
         placeholder="Paste your resume text here…"
       />
 
-      {message && (
-        <div
-          className={`rounded-md p-4 text-sm ${
-            messageType === "error"
-              ? "bg-red-50 text-red-700"
-              : messageType === "upgrade"
-              ? "bg-blue-50 text-blue-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {message}
+      {error && (
+        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          {error}
         </div>
       )}
 
       <button
         onClick={handleSubmit}
-        disabled={submitting}
+        disabled={loading}
         className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
       >
-        {submitting ? "Analyzing…" : "Get resume feedback"}
+        {loading ? "Analyzing…" : "Get resume feedback"}
       </button>
     </div>
   );
