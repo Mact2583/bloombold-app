@@ -25,7 +25,7 @@ export default function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected dashboard */}
+          {/* Protected */}
           <Route
             path="/dashboard"
             element={
@@ -62,7 +62,7 @@ export default function App() {
             }
           />
 
-          {/* Safe fallback */}
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/resume-review" replace />} />
 
         </Routes>
