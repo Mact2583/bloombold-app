@@ -3,9 +3,13 @@ import { AuthProvider } from "@/contexts/SupabaseAuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import Login from "@/pages/Login";
-import ResumeReview from "@/pages/ResumeReview";
 import Logout from "@/pages/Logout";
+import ResumeReview from "@/pages/ResumeReview";
+
 import Dashboard from "@/pages/dashboard/Dashboard";
+import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
+import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
+import Upgrade from "@/pages/dashboard/Upgrade";
 
 export default function App() {
   return (
@@ -21,7 +25,7 @@ export default function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected */}
+          {/* Protected dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -31,11 +35,35 @@ export default function App() {
             }
           />
 
-          {/* Explicit catch — do NOT redirect blindly */}
           <Route
-            path="*"
-            element={<Navigate to="/resume-review" replace />}
+            path="/dashboard/resume-reviews"
+            element={
+              <ProtectedRoute>
+                <ResumeReviewHistory />
+              </ProtectedRoute>
+            }
           />
+
+          <Route
+            path="/dashboard/resume-reviews/:id"
+            element={
+              <ProtectedRoute>
+                <ResumeReviewDetail />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard/upgrade"
+            element={
+              <ProtectedRoute>
+                <Upgrade />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Safe fallback */}
+          <Route path="*" element={<Navigate to="/resume-review" replace />} />
 
         </Routes>
       </Router>
