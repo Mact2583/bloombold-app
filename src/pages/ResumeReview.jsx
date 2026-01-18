@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState(null);
-  const [messageType, setMessageType] = useState("info"); // info | upgrade | error
+  const [messageType, setMessageType] = useState("info");
+
+  // 🔁 Redirect AFTER auth is confirmed
+  useEffect(() => {
+    if (success && user && !loading) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [success, user, loading, navigate]);
 
   const handleSubmit = async () => {
     setMessage(null);
@@ -20,44 +28,42 @@ export default function ResumeReview() {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       const res = await fetch("/api/analyze-resume", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeText }),
       });
 
       const data = await res.json();
 
-      if (data?.upgradeRequired) {
-        setMessage(
-          "You’ve used your 3 free resume reviews. Upgrade to Pro to continue reviewing and access your full history."
-        );
-        setMessageType("upgrade");
-        return;
-      }
-
       if (!res.ok || data?.error) {
         setMessage(
-          "We couldn’t analyze your resume right now. Please try again in a moment."
+          "We couldn’t analyze your resume right now. Please try again."
         );
         setMessageType("error");
         return;
       }
 
-      // ✅ SUCCESS → redirect to dashboard
-      navigate("/dashboard", { replace: true });
+      if (data?.upgradeRequired) {
+        setMessage(
+          "You’ve used your free resume reviews. Upgrade to Pro to continue."
+        );
+        setMessageType("upgrade");
+        return;
+      }
+
+      // ✅ mark success — redirect handled by effect
+      setSuccess(true);
+      setMessage("Your resume was analyzed successfully.");
+      setMessageType("info");
     } catch {
-      setMessage(
-        "Something went wrong while analyzing your resume. Please try again."
-      );
+      setMessage("Something went wrong. Please try again.");
       setMessageType("error");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -70,26 +76,21 @@ export default function ResumeReview() {
         </p>
       </div>
 
-      <div className="space-y-2">
-        <textarea
-          value={resumeText}
-          onChange={(e) => setResumeText(e.target.value)}
-          rows={14}
-          className="w-full rounded-md border p-4 text-sm"
-          placeholder="Paste your resume text here…"
-        />
-        <p className="text-xs text-gray-500">
-          No formatting required. Results usually appear in under a minute.
-        </p>
-      </div>
+      <textarea
+        value={resumeText}
+        onChange={(e) => setResumeText(e.target.value)}
+        rows={14}
+        className="w-full rounded-md border p-4 text-sm"
+        placeholder="Paste your resume text here…"
+      />
 
       {message && (
         <div
           className={`rounded-md p-4 text-sm ${
-            messageType === "upgrade"
-              ? "bg-blue-50 text-blue-800"
-              : messageType === "error"
+            messageType === "error"
               ? "bg-red-50 text-red-700"
+              : messageType === "upgrade"
+              ? "bg-blue-50 text-blue-800"
               : "bg-gray-100 text-gray-800"
           }`}
         >
@@ -97,37 +98,13 @@ export default function ResumeReview() {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
-        >
-          {loading ? "Analyzing…" : "Get resume feedback"}
-        </button>
-
-        {!user && (
-          <button
-            onClick={() =>
-              navigate("/login", {
-                state: { returnTo: "/resume-review" },
-              })
-            }
-            className="text-sm underline"
-          >
-            Log in
-          </button>
-        )}
-
-        {messageType === "upgrade" && (
-          <button
-            onClick={() => navigate("/dashboard/upgrade")}
-            className="text-sm font-medium underline"
-          >
-            Upgrade to Pro
-          </button>
-        )}
-      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
+      >
+        {submitting ? "Analyzing…" : "Get resume feedback"}
+      </button>
     </div>
   );
 }
