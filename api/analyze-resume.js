@@ -1,42 +1,26 @@
 export default async function handler(req, res) {
-  // ✅ Handle preflight requests
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  let body;
+  const { resumeText } = req.body || {};
 
-  try {
-    body =
-      typeof req.body === "string"
-        ? JSON.parse(req.body)
-        : req.body;
-  } catch {
-    return res.status(400).json({ error: "Invalid JSON body" });
-  }
-
-  const { resumeText } = body || {};
-
-  if (!resumeText || resumeText.trim().length < 100) {
+  // MVP: allow short resumes, just require something
+  if (!resumeText || resumeText.trim().length < 20) {
     return res.status(400).json({
-      error: "Resume text is required"
+      error: "Please paste more of your resume to continue."
     });
   }
 
-  // ✅ TEMP MVP RESPONSE (stable)
   return res.status(200).json({
     upgradeRequired: false,
     strengths: [
       "Your resume is clearly structured and easy to scan.",
-      "Professional experience is separated cleanly by role."
+      "Your experience sections are well separated."
     ],
     risks: [
-      "Some bullet points could be more results-focused.",
-      "Your summary could better reflect your target role."
+      "Some bullets could be more results-focused.",
+      "Your summary could be more targeted."
     ],
     next_steps: [
       "Clarify the roles you are targeting.",
