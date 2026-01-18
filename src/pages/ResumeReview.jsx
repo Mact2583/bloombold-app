@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,11 +31,15 @@ export default function ResumeReview() {
         throw new Error("Analysis failed");
       }
 
-      // 🔐 ALWAYS force login → dashboard
-      navigate("/login", {
-        replace: true,
-        state: { returnTo: "/dashboard" },
-      });
+      // ✅ AUTH-AWARE REDIRECT (THIS IS THE KEY)
+      if (user) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/login", {
+          replace: true,
+          state: { returnTo: "/dashboard" },
+        });
+      }
     } catch {
       setError("We couldn’t analyze your resume right now. Please try again.");
     } finally {

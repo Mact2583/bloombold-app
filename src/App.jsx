@@ -31,8 +31,11 @@ export default function App() {
             }
           />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/resume-review" replace />} />
+          {/* Explicit catch — do NOT redirect blindly */}
+          <Route
+            path="*"
+            element={<Navigate to="/resume-review" replace />}
+          />
 
         </Routes>
       </Router>
