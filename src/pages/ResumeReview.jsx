@@ -1,132 +1,73 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { getAnalyzeResumeUrl } from "@/lib/api";
 
 export default function ResumeReview() {
-  const navigate = useNavigate();
-  const { session } = useAuth();
-
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [messageType, setMessageType] = useState("info"); // info | upgrade | error
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
-    setMessage(null);
+  const analyze = async () => {
+    setError("");
+    setResult(null);
 
     if (!resumeText.trim()) {
-      setMessage("Please paste your resume to continue.");
-      setMessageType("info");
+      setError("Please paste your resume text.");
       return;
     }
 
-    if (!session?.access_token) {
-      setMessage("Your session has expired. Please log in again.");
-      setMessageType("error");
+    const endpoint = getAnalyzeResumeUrl();
+    if (!endpoint) {
+      setError("Analyze endpoint not configured.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "analyze-resume",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: { resumeText },
-        }
-      );
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          resumeText,
+          tier: "free"
+        })
+      });
 
-      if (data?.upgradeRequired) {
-        setMessage(
-          "You’ve used your 3 free resume reviews. You can return to your dashboard or upgrade to Pro for unlimited reviews."
-        );
-        setMessageType("upgrade");
-        return;
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Analyze failed (${res.status}): ${text}`);
       }
 
-      if (error || data?.error) {
-        console.error("Analyze error:", error || data?.error);
-        setMessage(
-          "We couldn’t analyze your resume right now. Please try again."
-        );
-        setMessageType("error");
-        return;
-      }
-
-      navigate("/dashboard");
+      const data = await res.json();
+      setResult(data);
     } catch (err) {
-      console.error("Unexpected error:", err);
-      setMessage("Something went wrong. Please try again.");
-      setMessageType("error");
+      setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Resume Review</h1>
-        <p className="text-gray-600">
-          Get clear, ATS-aware feedback on your resume.
-        </p>
-      </div>
+    <div className="resume-review">
+      <h1>Resume Review</h1>
 
       <textarea
         value={resumeText}
         onChange={(e) => setResumeText(e.target.value)}
-        rows={14}
-        className="w-full rounded-md border p-4 text-sm"
-        placeholder="Paste your resume text here…"
+        placeholder="Paste your resume here…"
+        rows={10}
       />
 
-      {message && (
-        <div
-          className={`rounded-md p-4 text-sm ${
-            messageType === "error"
-              ? "bg-red-50 text-red-800"
-              : messageType === "upgrade"
-              ? "bg-yellow-50 text-yellow-900"
-              : "bg-blue-50 text-blue-800"
-          }`}
-        >
-          {message}
-        </div>
-      )}
+      <button onClick={analyze} disabled={loading}>
+        {loading ? "Analyzing…" : "Analyze (Free)"}
+      </button>
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="rounded-md bg-black px-6 py-3 text-white font-medium hover:bg-gray-900 disabled:opacity-50"
-        >
-          {loading ? "Analyzing…" : "Get resume feedback"}
-        </button>
-
-        {messageType === "upgrade" && (
-          <>
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="text-sm underline"
-            >
-              Back to dashboard
-            </button>
-
-            <button
-              onClick={() => navigate("/dashboard/upgrade")}
-              className="text-sm font-medium underline"
-            >
-              Upgrade to Pro
-            </button>
-          </>
-        )}
-      </div>
+      {error && <p className="error">{error}</p>}
+      {result && <pre>{JSON.stringify(result, null, 2)}</pre>}
     </div>
   );
 }

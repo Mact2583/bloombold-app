@@ -5,12 +5,14 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Logout from "@/pages/Logout";
 
 // Public pages
+import LandingPage from "@/pages/LandingPage";
 import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import AuthCallback from "@/pages/auth/Callback";
 
-// Protected layout + pages
-import DashboardLayout from "@/layouts/DashboardLayout";
+// Protected pages
 import Dashboard from "@/pages/dashboard/Dashboard";
-import ResumeReview from "@/pages/dashboard/ResumeReview";
+import ResumeReview from "@/pages/ResumeReview";
 
 export default function App() {
   console.log("🔥 BloomBold App.jsx v2026-01-17 🔥");
@@ -20,18 +22,13 @@ export default function App() {
       <Router>
         <Routes>
 
-          {/* Root: always force auth */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
+          {/* Root – force login for soft launch */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/logout" element={<Logout />} />
 
           {/* Protected */}
@@ -39,16 +36,22 @@ export default function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardLayout />
+                <Dashboard />
               </ProtectedRoute>
             }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="resume-review" element={<ResumeReview />} />
-          </Route>
+          />
+
+          <Route
+            path="/resume-review"
+            element={
+              <ProtectedRoute>
+                <ResumeReview />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
 
         </Routes>
       </Router>
