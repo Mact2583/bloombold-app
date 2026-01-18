@@ -8,8 +8,8 @@ export default function Login() {
   const location = useLocation();
   const { user } = useAuth();
 
-  const returnTo =
-    location.state?.returnTo || "/dashboard";
+  // Explicit, safe default
+  const returnTo = location.state?.returnTo || "/resume-review";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,12 +17,10 @@ export default function Login() {
   const [error, setError] = useState(null);
 
   /**
-   * ✅ If already logged in, never show login screen
+   * 🚫 DO NOT auto-redirect on render
+   * If user is already logged in, just show the page briefly
+   * and let ProtectedRoute handle navigation elsewhere
    */
-  if (user) {
-    navigate(returnTo, { replace: true });
-    return null;
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,12 +40,9 @@ export default function Login() {
         return;
       }
 
-      /**
-       * ✅ Let Supabase finish setting session
-       * AuthProvider will pick this up
-       */
+      // ✅ Redirect ONLY after explicit login success
       navigate(returnTo, { replace: true });
-    } catch (err) {
+    } catch {
       setError("Unable to log in. Please try again.");
       setLoading(false);
     }
