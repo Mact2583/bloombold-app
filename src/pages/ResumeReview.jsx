@@ -23,7 +23,9 @@ export default function ResumeReview() {
     try {
       const res = await fetch("/api/analyze-resume", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ resumeText }),
       });
 
@@ -31,7 +33,11 @@ export default function ResumeReview() {
         throw new Error("Analysis failed");
       }
 
-      // ✅ AUTH-AWARE REDIRECT (THIS IS THE KEY)
+      /**
+       * ✅ SUCCESS → DASHBOARD IS THE SOURCE OF TRUTH
+       * Logged-in users go straight there
+       * Logged-out users authenticate, then land there
+       */
       if (user) {
         navigate("/dashboard", { replace: true });
       } else {
@@ -41,7 +47,9 @@ export default function ResumeReview() {
         });
       }
     } catch {
-      setError("We couldn’t analyze your resume right now. Please try again.");
+      setError(
+        "We couldn’t analyze your resume right now. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -49,27 +57,36 @@ export default function ResumeReview() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">Resume Review</h1>
         <p className="text-gray-600">
-          Paste your resume to get ATS-aware feedback.
+          Get clear, ATS-aware feedback on your resume.
         </p>
       </div>
 
-      <textarea
-        value={resumeText}
-        onChange={(e) => setResumeText(e.target.value)}
-        rows={14}
-        className="w-full rounded-md border p-4 text-sm"
-        placeholder="Paste your resume text here…"
-      />
+      {/* Resume input */}
+      <div className="space-y-2">
+        <textarea
+          value={resumeText}
+          onChange={(e) => setResumeText(e.target.value)}
+          rows={14}
+          className="w-full rounded-md border p-4 text-sm"
+          placeholder="Paste your resume text here…"
+        />
+        <p className="text-xs text-gray-500">
+          No formatting required. Results usually appear in under a minute.
+        </p>
+      </div>
 
+      {/* Error */}
       {error && (
         <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
+      {/* Action */}
       <button
         onClick={handleSubmit}
         disabled={loading}
