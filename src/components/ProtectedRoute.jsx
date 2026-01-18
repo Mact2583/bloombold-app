@@ -5,18 +5,22 @@ export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // While auth is hydrating, render nothing (prevents flash + redirect loops)
-  if (loading) return null;
+  // ⏳ Do NOTHING until auth hydration finishes
+  if (loading) {
+    return null;
+  }
 
+  // 🔐 Not authenticated → go to login
   if (!user) {
     return (
       <Navigate
         to="/login"
         replace
-        state={{ from: location.pathname }}
+        state={{ returnTo: location.pathname }}
       />
     );
   }
 
+  // ✅ Authenticated → allow access
   return children;
 }

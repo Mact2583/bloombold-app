@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Login from "@/pages/Login";
 import ResumeReview from "@/pages/ResumeReview";
 import Logout from "@/pages/Logout";
+import Dashboard from "@/pages/dashboard/Dashboard";
 
 export default function App() {
   return (
@@ -13,24 +14,25 @@ export default function App() {
         <Routes>
 
           {/* Entry */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/resume-review" replace />} />
 
           {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/resume-review" element={<ResumeReview />} />
 
           {/* Protected */}
           <Route
-            path="/resume-review"
+            path="/dashboard"
             element={
               <ProtectedRoute>
-                <ResumeReview />
+                <Dashboard />
               </ProtectedRoute>
             }
           />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/resume-review" replace />} />
 
         </Routes>
       </Router>
