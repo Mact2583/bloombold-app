@@ -26,14 +26,13 @@ export default function ResumeReview() {
       const res = await fetch("/api/analyze-resume", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ resumeText })
+        body: JSON.stringify({ resumeText }),
       });
 
       const data = await res.json();
 
-      // 🚧 Free limit reached
       if (data?.upgradeRequired) {
         setMessage(
           "You’ve used your 3 free resume reviews. Upgrade to Pro to continue reviewing and access your full history."
@@ -42,7 +41,6 @@ export default function ResumeReview() {
         return;
       }
 
-      // ❌ Backend error
       if (!res.ok || data?.error) {
         setMessage(
           "We couldn’t analyze your resume right now. Please try again in a moment."
@@ -51,13 +49,8 @@ export default function ResumeReview() {
         return;
       }
 
-      // ✅ Success — for MVP we stay on page
-      setMessage("Your resume was analyzed successfully.");
-      setMessageType("info");
-
-      // (Later you can route to results/history here)
-      // navigate("/dashboard/resume-reviews");
-
+      // ✅ SUCCESS → redirect to dashboard
+      navigate("/dashboard", { replace: true });
     } catch {
       setMessage(
         "Something went wrong while analyzing your resume. Please try again."
@@ -70,17 +63,13 @@ export default function ResumeReview() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold">
-          Resume Review
-        </h1>
+        <h1 className="text-2xl font-semibold">Resume Review</h1>
         <p className="text-gray-600">
           Get clear, ATS-aware feedback on your resume.
         </p>
       </div>
 
-      {/* Resume input */}
       <div className="space-y-2">
         <textarea
           value={resumeText}
@@ -89,13 +78,11 @@ export default function ResumeReview() {
           className="w-full rounded-md border p-4 text-sm"
           placeholder="Paste your resume text here…"
         />
-
         <p className="text-xs text-gray-500">
           No formatting required. Results usually appear in under a minute.
         </p>
       </div>
 
-      {/* Message */}
       {message && (
         <div
           className={`rounded-md p-4 text-sm ${
@@ -110,7 +97,6 @@ export default function ResumeReview() {
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex items-center gap-4">
         <button
           onClick={handleSubmit}
