@@ -25,22 +25,16 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { user, isPro, loading: authLoading } = useAuth();
 
-  /**
-   * ✅ If user becomes Pro, send them back to dashboard
-   * (Billing page can come later)
-   */
   useEffect(() => {
     if (!authLoading && isPro) {
       navigate("/dashboard", { replace: true });
     }
   }, [authLoading, isPro, navigate]);
 
-  // ⏳ Auth resolving
   if (authLoading) {
     return <UpgradeSkeleton />;
   }
 
-  // 🔐 Not logged in → redirect to login
   if (!user) {
     navigate("/login", {
       replace: true,
@@ -50,15 +44,13 @@ export default function Upgrade() {
   }
 
   /**
-   * 🚀 Start Stripe Checkout
-   * Explicitly ensures session exists so auth headers are attached
+   * 🚀 Start Stripe Checkout (EXPLICIT AUTH VERSION)
    */
   const startCheckout = async (billingCycle) => {
     try {
-      // 🔐 Force session hydration
       const { data: sessionData } = await supabase.auth.getSession();
 
-      if (!sessionData?.session) {
+      if (!sessionData?.session?.access_token) {
         alert("Your session expired. Please log in again.");
         navigate("/login", {
           replace: true,
@@ -67,10 +59,15 @@ export default function Upgrade() {
         return;
       }
 
+      const accessToken = sessionData.session.access_token;
+
       const { data, error } = await supabase.functions.invoke(
         "create-checkout-session",
         {
           body: { billingCycle },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
 
@@ -86,7 +83,6 @@ export default function Upgrade() {
         return;
       }
 
-      // ✅ Redirect to Stripe Checkout
       window.location.href = data.url;
     } catch (err) {
       console.error("Checkout exception:", err);
@@ -96,7 +92,6 @@ export default function Upgrade() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">
           BloomBold Pro
@@ -106,7 +101,6 @@ export default function Upgrade() {
         </p>
       </div>
 
-      {/* Plan Card */}
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• Unlimited AI resume reviews</li>
@@ -134,7 +128,6 @@ export default function Upgrade() {
         </p>
       </div>
 
-      {/* Back */}
       <div className="text-center">
         <button
           onClick={() => navigate("/dashboard")}
