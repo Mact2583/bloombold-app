@@ -25,7 +25,7 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { user, isPro, loading: authLoading } = useAuth();
 
-  // If user becomes Pro, send them back to dashboard
+  // If user becomes Pro, redirect back to dashboard
   useEffect(() => {
     if (!authLoading && isPro) {
       navigate("/dashboard", { replace: true });
@@ -46,19 +46,43 @@ export default function Upgrade() {
 
   const startCheckout = async (billingCycle) => {
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "create-checkout-session",
+      // 🔐 Explicitly fetch session
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("No active session");
+      }
+
+      // 🚀 Invoke Edge Function WITH auth header
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`,
         {
-          body: { billingCycle },
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ billingCycle }),
         }
       );
 
-      if (error || !data?.url) {
-        throw new Error("Checkout session failed");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Checkout failed");
+      }
+
+      const data = await res.json();
+
+      if (!data?.url) {
+        throw new Error("Missing Stripe checkout URL");
       }
 
       window.location.href = data.url;
     } catch (err) {
+      console.error("Checkout error:", err);
       alert("We couldn’t start checkout right now. Please try again.");
     }
   };
@@ -70,7 +94,7 @@ export default function Upgrade() {
           BloomBold Pro
         </h1>
         <p className="text-gray-600 mt-2">
-          Unlimited resume refinement and long-term career clarity.
+          Unlimited resume reviews, full history, and exports.
         </p>
       </div>
 
