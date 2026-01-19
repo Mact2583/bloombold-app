@@ -25,6 +25,7 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { user, isPro, loading: authLoading } = useAuth();
 
+  // If user becomes Pro, send them back to dashboard
   useEffect(() => {
     if (!authLoading && isPro) {
       navigate("/dashboard", { replace: true });
@@ -43,50 +44,22 @@ export default function Upgrade() {
     return null;
   }
 
-  /**
-   * 🚀 Start Stripe Checkout (EXPLICIT AUTH VERSION)
-   */
   const startCheckout = async (billingCycle) => {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-
-      if (!sessionData?.session?.access_token) {
-        alert("Your session expired. Please log in again.");
-        navigate("/login", {
-          replace: true,
-          state: { returnTo: "/dashboard/upgrade" },
-        });
-        return;
-      }
-
-      const accessToken = sessionData.session.access_token;
-
       const { data, error } = await supabase.functions.invoke(
         "create-checkout-session",
         {
           body: { billingCycle },
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
         }
       );
 
-      if (error) {
-        console.error("Checkout Edge Function error:", error);
-        alert("We couldn’t start checkout right now. Please try again.");
-        return;
-      }
-
-      if (!data?.url) {
-        console.error("Checkout URL missing:", data);
-        alert("We couldn’t start checkout right now. Please try again.");
-        return;
+      if (error || !data?.url) {
+        throw new Error("Checkout session failed");
       }
 
       window.location.href = data.url;
     } catch (err) {
-      console.error("Checkout exception:", err);
-      alert("Something went wrong starting checkout. Please try again.");
+      alert("We couldn’t start checkout right now. Please try again.");
     }
   };
 
@@ -97,14 +70,14 @@ export default function Upgrade() {
           BloomBold Pro
         </h1>
         <p className="text-gray-600 mt-2">
-          Unlimited resume reviews, full history, and exports.
+          Unlimited resume refinement and long-term career clarity.
         </p>
       </div>
 
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
         <ul className="space-y-2 text-sm text-gray-700">
           <li>• Unlimited AI resume reviews</li>
-          <li>• Full access to your review history</li>
+          <li>• Full access to review history</li>
           <li>• PDF exports</li>
           <li>• Ongoing feature improvements</li>
         </ul>
@@ -118,7 +91,7 @@ export default function Upgrade() {
 
         <button
           onClick={() => startCheckout("annual")}
-          className="w-full rounded-md border px-6 py-3 text-sm font-medium"
+          className="w-full rounded-md border px-6 py-3 font-medium"
         >
           $79 / year — Best value
         </button>
