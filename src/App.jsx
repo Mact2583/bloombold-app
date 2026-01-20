@@ -6,10 +6,16 @@ import Login from "@/pages/Login";
 import Logout from "@/pages/Logout";
 import ResumeReview from "@/pages/ResumeReview";
 
+import DashboardLayout from "@/layouts/DashboardLayout";
+
+// Dashboard pages
 import Dashboard from "@/pages/dashboard/Dashboard";
-import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
 import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
+import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
 import Upgrade from "@/pages/dashboard/Upgrade";
+import Billing from "@/pages/dashboard/Billing";
+import Profile from "@/pages/dashboard/Profile";
+import Settings from "@/pages/dashboard/Settings";
 
 export default function App() {
   return (
@@ -24,42 +30,23 @@ export default function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected */}
+          {/* Protected dashboard (layout-based) */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <DashboardLayout />
               </ProtectedRoute>
             }
-          />
-
-          <Route
-            path="/dashboard/resume-reviews"
-            element={
-              <ProtectedRoute>
-                <ResumeReviewHistory />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard/resume-reviews/:id"
-            element={
-              <ProtectedRoute>
-                <ResumeReviewDetail />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/dashboard/upgrade"
-            element={
-              <ProtectedRoute>
-                <Upgrade />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="resume-reviews" element={<ResumeReviewHistory />} />
+            <Route path="resume-reviews/:id" element={<ResumeReviewDetail />} />
+            <Route path="billing" element={<Billing />} />
+            <Route path="upgrade" element={<Upgrade />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/resume-review" replace />} />

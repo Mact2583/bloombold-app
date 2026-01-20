@@ -1,6 +1,7 @@
 import React from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { supabase } from "@/lib/supabaseClient";
 import {
   LayoutDashboard,
   FileText,
@@ -23,6 +24,7 @@ function DashboardHeaderSkeleton() {
 
 const DashboardLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
 
   const pageTitleMap = {
@@ -34,10 +36,16 @@ const DashboardLayout = () => {
     "/dashboard/profile": "Profile",
     "/dashboard/settings": "Settings",
     "/dashboard/billing": "Billing",
+    "/dashboard/upgrade": "Upgrade",
   };
 
   const pageTitle =
     pageTitleMap[location.pathname] || "Dashboard";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FD]">
@@ -78,13 +86,14 @@ const DashboardLayout = () => {
 
         <div className="flex-1" />
 
-        <NavLink
-          to="/logout"
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+        {/* Logout (ACTION, NOT ROUTE) */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
         >
           <LogOut size={18} />
           Logout
-        </NavLink>
+        </button>
       </aside>
 
       {/* Main */}
