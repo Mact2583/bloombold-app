@@ -17,8 +17,7 @@ export default function Dashboard() {
     let active = true;
 
     const loadLatestReview = async () => {
-      // Only show loading the first time
-      setLoading((prev) => (prev ? true : false));
+      setLoading(true);
 
       const { data, error } = await supabase
         .from("resume_reviews")
@@ -30,13 +29,7 @@ export default function Dashboard() {
 
       if (!active) return;
 
-      if (error) {
-        console.error("Failed to load latest review:", error);
-        setLatestReview(null);
-      } else {
-        setLatestReview(data || null);
-      }
-
+      setLatestReview(error ? null : data || null);
       setLoading(false);
     };
 
@@ -47,46 +40,84 @@ export default function Dashboard() {
     };
   }, [user]);
 
-  /* ──────────────────────────────
-     AUTH GATE ONLY (no data blocking)
-     ────────────────────────────── */
   if (authLoading) {
     return <LoadingSkeleton />;
   }
 
+  const isFirstTime = !loading && !latestReview;
+
   return (
-    <div className="max-w-4xl space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="text-gray-600">
-          Here’s where your resume progress lives.
-        </p>
+    <div className="max-w-4xl space-y-10">
+      {/* Onboarding intro (first-time users only) */}
+      {isFirstTime && (
+        <div className="rounded-lg border bg-white p-6 shadow-sm space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Welcome to BloomBold
+          </h2>
+
+          <p className="text-gray-700">
+            BloomBold helps you improve your resume with clear,
+            ATS-aware feedback — and keeps your progress organized as you iterate.
+          </p>
+
+          <ul className="list-disc pl-6 text-sm text-gray-600 space-y-1">
+            <li>Run a resume review (free)</li>
+            <li>Review actionable feedback</li>
+            <li>Iterate and track progress over time</li>
+          </ul>
+
+          <p className="text-sm text-gray-500">
+            You can upgrade anytime to unlock unlimited reviews,
+            full history, and upcoming tools.
+          </p>
+        </div>
+      )}
+
+      {/* Status Card */}
+      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-3">
+        {!isPro ? (
+          <>
+            <h2 className="text-lg font-semibold text-gray-900">
+              You’re on the Free plan
+            </h2>
+            <p className="text-gray-700">
+              You can run up to 3 resume reviews.
+              Your most recent review is saved here for reference.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-lg font-semibold text-gray-900">
+              BloomBold Pro is active
+            </h2>
+            <p className="text-gray-700">
+              You have unlimited resume reviews,
+              full history access, and all future tools included.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Resume Reviews Card */}
-      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
+      {/* Resume Reviews */}
+      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">Resume Reviews</h2>
-
-          {!isPro && (
-            <p className="text-sm text-gray-500">
-              Free accounts include up to 3 resume reviews.
-            </p>
-          )}
+          <h2 className="text-lg font-semibold text-gray-900">
+            Resume Reviews
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Your resume feedback lives here as you refine and improve.
+          </p>
         </div>
 
-        {/* Loading state (DATA ONLY) */}
         {loading && (
           <p className="text-sm text-gray-500">
             Loading your latest review…
           </p>
         )}
 
-        {/* No reviews yet */}
         {!loading && !latestReview && (
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               Start with your first resume review — it’s free.
             </p>
 
@@ -99,14 +130,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Has at least one review */}
         {!loading && latestReview && (
           <div className="space-y-4">
-            <p className="text-gray-600">Most recent review:</p>
-
             <div className="flex items-center justify-between rounded border p-4">
               <span className="text-sm text-gray-700">
-                {new Date(latestReview.created_at).toLocaleString()}
+                Last review run on{" "}
+                {new Date(latestReview.created_at).toLocaleDateString()}
               </span>
 
               <button
@@ -119,10 +148,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <p className="text-sm text-gray-600">
-              Want feedback on another version or role?
-            </p>
-
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => navigate("/resume-review")}
@@ -134,33 +159,12 @@ export default function Dashboard() {
               {!isPro && (
                 <button
                   onClick={() => navigate("/dashboard/upgrade")}
-                  className="rounded-md bg-black px-5 py-2 text-sm text-white hover:bg-gray-900"
+                  className="rounded-md bg-[#7D77DF] px-5 py-2 text-sm text-white hover:bg-[#6A64D8]"
                 >
                   Upgrade to Pro
                 </button>
               )}
-
-              {isPro && (
-                <button
-                  onClick={() => navigate("/dashboard/resume-reviews")}
-                  className="rounded-md border px-5 py-2 text-sm"
-                >
-                  View full history
-                </button>
-              )}
             </div>
-
-            {!isPro && (
-              <p className="text-sm text-gray-500">
-                Upgrade to Pro to revisit past reviews and run unlimited analyses.
-              </p>
-            )}
-
-            {isPro && (
-              <p className="text-sm text-green-700">
-                Pro — unlimited resume reviews enabled.
-              </p>
-            )}
           </div>
         )}
       </div>

@@ -1,19 +1,22 @@
+import ComingSoonBadge from "@/components/ComingSoonBadge";
+
 export default function Mentor() {
   return (
-    <div className="max-w-3xl space-y-6 relative">
-      <span className="absolute right-0 top-0 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-        Coming soon
-      </span>
-
-      <div>
+    <div className="max-w-3xl space-y-6">
+      {/* Title + badge */}
+      <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold text-gray-900">
           AI Career Mentor
         </h1>
-        <p className="text-gray-600 mt-2">
-          A calm, experienced voice — available when you need perspective.
-        </p>
+        <ComingSoonBadge />
       </div>
 
+      {/* Subtitle */}
+      <p className="text-gray-600 mt-2">
+        A calm, experienced voice — available when you need perspective.
+      </p>
+
+      {/* Body */}
       <div className="space-y-4 text-gray-700">
         <p>
           We’re building an AI mentor designed to help you:

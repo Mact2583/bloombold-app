@@ -78,7 +78,7 @@ export default function Billing() {
         <h1 className="text-2xl font-semibold text-gray-900">
           Billing
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mt-2">
           Manage your BloomBold subscription.
         </p>
       </div>
@@ -107,9 +107,18 @@ export default function Billing() {
               Upgrade to Pro
             </button>
 
-            <p className="text-xs text-gray-500 mt-2">
-              Secure checkout. Cancel anytime.
-            </p>
+            {/* Reassurance */}
+            <div className="mt-4 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+              <p>
+                • Cancel anytime — no long-term commitment
+              </p>
+              <p>
+                • Secure checkout and billing managed by Stripe
+              </p>
+              <p>
+                • Keep access through the end of your billing period if you cancel
+              </p>
+            </div>
           </>
         )}
 
@@ -120,8 +129,8 @@ export default function Billing() {
             </p>
 
             <p className="text-sm text-gray-600">
-              Unlimited resume reviews, full history, and
-              PDF exports are enabled.
+              Unlimited resume reviews, full history access,
+              and PDF exports are enabled.
             </p>
 
             <button
@@ -134,10 +143,16 @@ export default function Billing() {
                 : "Manage subscription"}
             </button>
 
-            <p className="text-xs text-gray-500 mt-2">
-              Update payment method, invoices, or cancel
-              your subscription.
-            </p>
+            {/* Reassurance */}
+            <div className="mt-4 rounded-md bg-gray-50 p-4 text-sm text-gray-600">
+              <p>
+                Billing is handled securely through Stripe.
+              </p>
+              <p>
+                You can update payment methods, download invoices,
+                or cancel your subscription at any time.
+              </p>
+            </div>
           </>
         )}
       </div>
