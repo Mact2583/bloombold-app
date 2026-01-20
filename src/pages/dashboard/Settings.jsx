@@ -1,19 +1,23 @@
-import React from "react";
-
 export default function Settings() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Settings</h1>
+    <div className="max-w-3xl space-y-6 relative">
+      <span className="absolute right-0 top-0 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+        More coming
+      </span>
 
-      <p className="text-gray-700 mb-6">
-        Manage your account, preferences, and application configurations.
-      </p>
-
-      <div className="bg-white shadow rounded-lg p-6">
-        <p className="text-gray-600">
-          Settings page coming soon — notifications, privacy options, and app preferences.
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Settings
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Manage your BloomBold experience.
         </p>
       </div>
+
+      <p className="text-gray-700">
+        Additional preferences and account controls will be added here as the
+        platform evolves.
+      </p>
     </div>
   );
 }
