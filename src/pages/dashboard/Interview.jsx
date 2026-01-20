@@ -1,18 +1,19 @@
+import ComingSoonBadge from "@/components/ComingSoonBadge";
+
 export default function Interview() {
   return (
-    <div className="max-w-3xl space-y-6 relative">
-      <span className="absolute right-0 top-0 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-        Coming soon
-      </span>
-
-      <div>
+    <div className="max-w-3xl space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold text-gray-900">
           Interview Prep
         </h1>
-        <p className="text-gray-600 mt-2">
-          Practice interviews with structure and clarity — not generic questions.
-        </p>
+        <ComingSoonBadge />
       </div>
+
+      <p className="text-gray-600">
+        Practice interviews with structure and clarity — not generic questions.
+      </p>
 
       <div className="space-y-4 text-gray-700">
         <p>
