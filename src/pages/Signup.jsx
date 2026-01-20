@@ -25,8 +25,8 @@ const Signup = () => {
       return;
     }
 
-    // Success → go to resume review or dashboard
-    navigate("/resume-review");
+    // ✅ Success → Dashboard is the source of truth
+    navigate("/dashboard", { replace: true });
   };
 
   return (
@@ -35,14 +35,19 @@ const Signup = () => {
         onSubmit={handleSignup}
         className="w-full max-w-sm space-y-4 border rounded-lg p-6"
       >
-        <h1 className="text-2xl font-semibold text-center">Create account</h1>
+        <h1 className="text-2xl font-semibold text-center">
+          Create account
+        </h1>
 
         <input
           type="email"
           placeholder="Email"
           className="w-full border rounded-md p-3 text-sm"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
           required
         />
 
@@ -51,7 +56,10 @@ const Signup = () => {
           placeholder="Password"
           className="w-full border rounded-md p-3 text-sm"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (error) setError(null);
+          }}
           required
         />
 
@@ -72,4 +80,3 @@ const Signup = () => {
 };
 
 export default Signup;
-

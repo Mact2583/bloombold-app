@@ -97,7 +97,8 @@ const DashboardLayout = () => {
           BloomBold
         </h1>
 
-        <nav className="flex flex-col gap-6">
+        <nav className="flex flex-col gap-8">
+
           {/* Core */}
           <div className="space-y-1">
             <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
@@ -187,9 +188,10 @@ const DashboardLayout = () => {
         {loading ? (
           <DashboardHeaderSkeleton />
         ) : (
-          <header className="flex justify-between items-center mb-8">
+          <header className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-semibold text-gray-900">
+              <h2 className="text-3xl font-semibold text-gray-900 leading-tight">
+
                 {pageTitle}
               </h2>
 

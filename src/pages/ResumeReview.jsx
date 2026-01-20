@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { loading: authLoading } = useAuth();
+  const { user } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,29 +19,45 @@ export default function ResumeReview() {
       return;
     }
 
+    if (!user) {
+      navigate("/login", {
+        replace: true,
+        state: { returnTo: "/resume-review" },
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch("/api/analyze-resume", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ resumeText }),
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "analyze-resume",
+        {
+          body: { resumeText },
+        }
+      );
 
-      if (!res.ok) {
-        throw new Error("Analysis failed");
+      if (error) {
+        throw error;
       }
 
-      /**
-       * ✅ ALWAYS go to dashboard
-       * ProtectedRoute decides access once auth is ready
-       */
-      navigate("/dashboard", { replace: true });
-    } catch {
+      if (data?.upgradeRequired) {
+        navigate("/dashboard/upgrade", { replace: true });
+        return;
+      }
+
+      if (data?.success && data?.reviewId) {
+        navigate(`/dashboard/resume-reviews/${data.reviewId}`, {
+          replace: true,
+        });
+        return;
+      }
+
+      throw new Error("Unexpected response from analysis service.");
+    } catch (err) {
+      console.error("Resume analysis failed:", err);
       setError(
-        "We couldn’t analyze your resume right now. Please try again."
+        "We couldn’t analyze your resume right now. Please try again in a moment."
       );
     } finally {
       setLoading(false);
@@ -51,9 +68,11 @@ export default function ResumeReview() {
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold">Resume Review</h1>
-        <p className="text-gray-600">
-          Get clear, ATS-aware feedback on your resume.
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Resume Review
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Get clear, ATS-aware feedback — focused on impact, not templates.
         </p>
       </div>
 

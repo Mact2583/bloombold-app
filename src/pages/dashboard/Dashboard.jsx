@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import FeedbackPulse from "@/components/FeedbackPulse";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -99,7 +100,7 @@ export default function Dashboard() {
       </div>
 
       {/* Resume Reviews */}
-      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-6">
+      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-5">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
             Resume Reviews
@@ -165,6 +166,7 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
+            <FeedbackPulse />
           </div>
         )}
       </div>
