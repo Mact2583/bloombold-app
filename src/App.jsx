@@ -2,25 +2,31 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider } from "@/contexts/SupabaseAuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+/* Public pages */
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Logout from "@/pages/Logout";
 import ResumeReview from "@/pages/ResumeReview";
 
+/* Dashboard layout */
 import DashboardLayout from "@/layouts/DashboardLayout";
+
+/* Dashboard pages */
 import Dashboard from "@/pages/dashboard/Dashboard";
 import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
 import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
 import Upgrade from "@/pages/dashboard/Upgrade";
 import Billing from "@/pages/dashboard/Billing";
+import Profile from "@/pages/dashboard/Profile";
+import Settings from "@/pages/dashboard/Settings";
 
 export default function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Root */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          {/* Entry */}
+          <Route path="/" element={<Navigate to="/resume-review" replace />} />
 
           {/* Public */}
           <Route path="/login" element={<Login />} />
@@ -28,7 +34,7 @@ export default function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected Dashboard */}
+          {/* Protected Dashboard (ALL dashboard pages live here) */}
           <Route
             path="/dashboard"
             element={
@@ -38,20 +44,16 @@ export default function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route
-              path="resume-reviews"
-              element={<ResumeReviewHistory />}
-            />
-            <Route
-              path="resume-reviews/:id"
-              element={<ResumeReviewDetail />}
-            />
+            <Route path="resume-reviews" element={<ResumeReviewHistory />} />
+            <Route path="resume-reviews/:id" element={<ResumeReviewDetail />} />
             <Route path="upgrade" element={<Upgrade />} />
             <Route path="billing" element={<Billing />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/resume-review" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

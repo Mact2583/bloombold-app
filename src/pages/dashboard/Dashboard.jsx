@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
@@ -7,11 +7,30 @@ import FeedbackPulse from "@/components/FeedbackPulse";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isPro, loading: authLoading } = useAuth();
 
   const [latestReview, setLatestReview] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showProSuccess, setShowProSuccess] = useState(false);
 
+  /* ----------------------------------------
+     Pro success moment (Stripe return)
+  ---------------------------------------- */
+  useEffect(() => {
+    if (searchParams.get("upgraded") === "true") {
+      setShowProSuccess(true);
+
+      // Clean URL after showing message
+      const params = new URLSearchParams(searchParams);
+      params.delete("upgraded");
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  /* ----------------------------------------
+     Load latest review
+  ---------------------------------------- */
   useEffect(() => {
     if (!user) return;
 
@@ -49,7 +68,20 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-4xl space-y-10">
-      {/* Onboarding intro (first-time users only) */}
+      {/* 🎉 Pro success banner */}
+      {showProSuccess && isPro && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-5">
+          <h2 className="text-lg font-semibold text-green-900">
+            You’re Pro 🎉
+          </h2>
+          <p className="text-sm text-green-800 mt-1">
+            Your subscription is active. Unlimited resume reviews, full history,
+            and all future tools are now unlocked.
+          </p>
+        </div>
+      )}
+
+      {/* Onboarding intro */}
       {isFirstTime && (
         <div className="rounded-lg border bg-white p-6 shadow-sm space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -62,19 +94,14 @@ export default function Dashboard() {
           </p>
 
           <ul className="list-disc pl-6 text-sm text-gray-600 space-y-1">
-            <li>Run a resume review (free)</li>
+            <li>Run a resume review</li>
             <li>Review actionable feedback</li>
             <li>Iterate and track progress over time</li>
           </ul>
-
-          <p className="text-sm text-gray-500">
-            You can upgrade anytime to unlock unlimited reviews,
-            full history, and upcoming tools.
-          </p>
         </div>
       )}
 
-      {/* Status Card */}
+      {/* Status card */}
       <div className="rounded-lg border bg-white p-6 shadow-sm space-y-3">
         {!isPro ? (
           <>
@@ -82,8 +109,7 @@ export default function Dashboard() {
               You’re on the Free plan
             </h2>
             <p className="text-gray-700">
-              You can run up to 3 resume reviews.
-              Your most recent review is saved here for reference.
+              You can run up to 3 resume reviews. Your most recent review is saved.
             </p>
           </>
         ) : (
@@ -92,8 +118,7 @@ export default function Dashboard() {
               BloomBold Pro is active
             </h2>
             <p className="text-gray-700">
-              You have unlimited resume reviews,
-              full history access, and all future tools included.
+              Unlimited reviews, full history access, and all future tools included.
             </p>
           </>
         )}
@@ -119,7 +144,7 @@ export default function Dashboard() {
         {!loading && !latestReview && (
           <div className="space-y-4">
             <p className="text-gray-700">
-              Start with your first resume review — it’s free.
+              Start with your first resume review.
             </p>
 
             <button
@@ -166,6 +191,7 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
+
             <FeedbackPulse />
           </div>
         )}
