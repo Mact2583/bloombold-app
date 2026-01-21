@@ -1,118 +1,79 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/contexts/SupabaseAuthContext";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-
-function UpgradeSkeleton() {
-  return (
-    <div className="mx-auto max-w-xl space-y-6 animate-pulse">
-      <div className="h-7 w-48 rounded bg-muted" />
-      <div className="h-4 w-72 rounded bg-muted" />
-      <div className="h-32 rounded bg-muted" />
-    </div>
-  );
-}
+import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function Upgrade() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isPro, loading: authLoading } = useAuth();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const [showSuccess, setShowSuccess] = useState(false);
+  const startCheckout = async (plan = "monthly") => {
+    if (!user || loading) return;
 
-  // 🎉 Pro success moment
-  useEffect(() => {
-    if (searchParams.get("success") === "1") {
-      setShowSuccess(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+    setLoading(true);
 
-  // 🚪 If user becomes Pro, stay on page briefly (don’t auto-redirect)
-  if (authLoading) {
-    return <UpgradeSkeleton />;
-  }
-
-  if (!user) {
-    navigate("/login", {
-      replace: true,
-      state: { returnTo: "/dashboard/upgrade" },
-    });
-    return null;
-  }
-
-  const handleUpgrade = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "create-checkout-session"
-      );
+      const { data, error } =
+        await supabase.functions.invoke(
+          "create-checkout-session",
+          {
+            body: { plan },
+          }
+        );
 
       if (error || !data?.url) {
-        alert("We couldn’t start checkout right now.");
+        alert(
+          "We couldn’t start checkout right now. Please try again."
+        );
         return;
       }
 
       window.location.href = data.url;
     } catch {
-      alert("Something went wrong starting checkout.");
+      alert(
+        "Something went wrong starting checkout. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      {showSuccess && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-5">
-          <h2 className="text-lg font-semibold text-green-800">
-            You’re Pro 🎉
-          </h2>
-          <p className="mt-1 text-sm text-green-700">
-            Your BloomBold Pro features are now unlocked.
-            You can revisit past reviews, run unlimited analyses,
-            and export PDFs anytime.
-          </p>
-        </div>
-      )}
-
+    <div className="max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          BloomBold Pro
+        <h1 className="text-3xl font-semibold text-gray-900">
+          Upgrade
         </h1>
-        <p className="text-gray-600 mt-2">
-          For ongoing resume refinement and long-term career planning.
-        </p>
       </div>
 
-      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-4">
-        {!isPro && (
-          <>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li>• Unlimited resume reviews</li>
-              <li>• Full review history</li>
-              <li>• PDF exports</li>
-              <li>• All future tools included</li>
-            </ul>
+      <div className="rounded-lg border bg-white p-6 shadow-sm space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            BloomBold Pro
+          </h2>
+          <p className="text-gray-600 mt-1">
+            For ongoing resume refinement and long-term
+            career planning.
+          </p>
+        </div>
 
-            <button
-              onClick={handleUpgrade}
-              className="w-full rounded-md bg-[#7D77DF] px-6 py-3 text-white font-medium hover:bg-[#6A64D8]"
-            >
-              Upgrade to Pro
-            </button>
+        <ul className="list-disc pl-6 space-y-1 text-gray-700">
+          <li>Unlimited resume reviews</li>
+          <li>Full review history</li>
+          <li>PDF exports</li>
+          <li>All future tools included</li>
+        </ul>
 
-            <p className="text-xs text-gray-500 text-center">
-              Secure checkout. Cancel anytime.
-            </p>
-          </>
-        )}
+        <button
+          onClick={() => startCheckout("monthly")}
+          disabled={loading}
+          className="w-full rounded-md bg-[#7D77DF] py-3 text-white font-medium hover:bg-[#6A64D8] disabled:opacity-50"
+        >
+          {loading ? "Redirecting…" : "Upgrade to Pro"}
+        </button>
 
-        {isPro && (
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full rounded-md border px-6 py-3 text-sm font-medium hover:bg-gray-50"
-          >
-            Go to dashboard
-          </button>
-        )}
+        <p className="text-xs text-center text-gray-500">
+          Secure checkout. Cancel anytime.
+        </p>
       </div>
     </div>
   );
