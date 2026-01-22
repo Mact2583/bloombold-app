@@ -1,7 +1,6 @@
 import React from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
-import Tooltip from "@/components/Tooltip";
 import {
   LayoutDashboard,
   FileText,
@@ -11,15 +10,20 @@ import {
   Settings,
   CreditCard,
   LogOut,
-  Lock,
 } from "lucide-react";
 
-const PRO_TOOLTIP =
-  "Available with BloomBold Pro — unlimited reviews, full history, and future tools.";
+function DashboardHeaderSkeleton() {
+  return (
+    <div className="flex justify-between items-center mb-8">
+      <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+      <div className="h-10 w-56 rounded bg-muted animate-pulse" />
+    </div>
+  );
+}
 
 const DashboardLayout = () => {
   const location = useLocation();
-  const { user, loading, isPro, signOut } = useAuth();
+  const { user, loading, isPro } = useAuth();
 
   const pageTitleMap = {
     "/dashboard": "Dashboard",
@@ -32,18 +36,8 @@ const DashboardLayout = () => {
     "/dashboard/billing": "Billing",
   };
 
-  const pageTitle = pageTitleMap[location.pathname] || "Dashboard";
-
-  const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { to: "/dashboard/resume", icon: FileText, label: "Resume Builder", pro: true },
-    { to: "/dashboard/resume-reviews", icon: FileText, label: "Resume Reviews" },
-    { to: "/dashboard/interview", icon: Mic, label: "Interview Prep", pro: true },
-    { to: "/dashboard/journal", icon: BookOpen, label: "Career Journal", pro: true },
-    { to: "/dashboard/profile", icon: User, label: "Profile" },
-    { to: "/dashboard/settings", icon: Settings, label: "Settings" },
-    { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
-  ];
+  const pageTitle =
+    pageTitleMap[location.pathname] || "Dashboard";
 
   return (
     <div className="flex min-h-screen bg-[#F7F8FD]">
@@ -53,47 +47,38 @@ const DashboardLayout = () => {
           BloomBold
         </h1>
 
-        <nav className="flex flex-col gap-1 text-sm">
-          {navItems.map(({ to, icon: Icon, label, pro }) => {
-            const locked = pro && !isPro;
-
-            const link = (
-              <NavLink
-                to={locked ? "#" : to}
-                onClick={(e) => locked && e.preventDefault()}
-                className={({ isActive }) =>
-                  `flex items-center justify-between rounded-md px-3 py-2 transition
-                  ${
-                    isActive
-                      ? "bg-[#EEF0FF] text-[#3730A3] font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
-                  ${locked ? "cursor-not-allowed opacity-80" : ""}`
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <Icon size={18} />
-                  {label}
-                </div>
-
-                {locked && <Lock size={14} className="text-gray-400" />}
-              </NavLink>
-            );
-
-            return locked ? (
-              <Tooltip key={to} label={PRO_TOOLTIP}>
-                {link}
-              </Tooltip>
-            ) : (
-              <div key={to}>{link}</div>
-            );
-          })}
+        <nav className="flex flex-col gap-2 text-sm">
+          {[
+            { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+            { to: "/dashboard/resume-reviews", icon: FileText, label: "Resume Reviews" },
+            { to: "/dashboard/interview", icon: Mic, label: "Interview Prep" },
+            { to: "/dashboard/journal", icon: BookOpen, label: "Career Journal" },
+            { to: "/dashboard/profile", icon: User, label: "Profile" },
+            { to: "/dashboard/settings", icon: Settings, label: "Settings" },
+            { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
+          ].map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-md px-3 py-2 transition ${
+                  isActive
+                    ? "bg-[#EEF0FF] text-[#3730A3] font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`
+              }
+            >
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="flex-1" />
 
+        {/* LOGOUT — force route mount */}
         <button
-          onClick={signOut}
+          onClick={() => (window.location.href = "/logout")}
           className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
         >
           <LogOut size={18} />
@@ -104,9 +89,9 @@ const DashboardLayout = () => {
       {/* Main */}
       <main className="flex-1 p-10">
         {loading ? (
-          <div className="h-10 w-48 rounded bg-muted animate-pulse mb-8" />
+          <DashboardHeaderSkeleton />
         ) : (
-          <header className="flex justify-between items-center mb-10">
+          <header className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <h2 className="text-3xl font-semibold text-gray-900">
                 {pageTitle}
@@ -120,7 +105,7 @@ const DashboardLayout = () => {
             </div>
 
             <div className="text-sm text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-md">
-              {user?.email}
+              {user?.email || ""}
             </div>
           </header>
         )}
