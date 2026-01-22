@@ -6,18 +6,17 @@ export default function Logout() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("🔥 Logout page mounted");
+
     const signOut = async () => {
-      try {
-        await supabase.auth.signOut();
-      } finally {
-        // Always send user to login after logout
-        navigate("/login", { replace: true });
-      }
+      console.log("🔥 Calling supabase.auth.signOut()");
+      await supabase.auth.signOut();
+      console.log("🔥 signOut finished");
+      navigate("/login", { replace: true });
     };
 
     signOut();
   }, [navigate]);
 
-  // Render nothing — this page is a transition only
-  return null;
+  return <div>Logging out…</div>;
 }

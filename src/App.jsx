@@ -2,16 +2,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider } from "@/contexts/SupabaseAuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-/* Public pages */
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Logout from "@/pages/Logout";
 import ResumeReview from "@/pages/ResumeReview";
 
-/* Dashboard layout */
 import DashboardLayout from "@/layouts/DashboardLayout";
-
-/* Dashboard pages */
 import Dashboard from "@/pages/dashboard/Dashboard";
 import ResumeReviewHistory from "@/pages/dashboard/ResumeReviewHistory";
 import ResumeReviewDetail from "@/pages/dashboard/ResumeReviewDetail";
@@ -34,7 +30,7 @@ export default function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
 
-          {/* Protected Dashboard (ALL dashboard pages live here) */}
+          {/* Protected dashboard */}
           <Route
             path="/dashboard"
             element={
