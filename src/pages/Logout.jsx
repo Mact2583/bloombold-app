@@ -6,24 +6,19 @@ export default function Logout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const doLogout = async () => {
-      console.log("🔥 Logout page mounted");
-      console.log("🔥 Calling supabase.auth.signOut()");
-
-      await supabase.auth.signOut();
-
-      console.log("🔥 signOut finished");
-
-      // Hard redirect to fully reset app state
-      window.location.href = "/login";
+    const logout = async () => {
+      try {
+        await supabase.auth.signOut({
+          scope: "global",
+        });
+      } finally {
+        // Hard redirect to guarantee fresh auth state
+        window.location.href = "/login";
+      }
     };
 
-    doLogout();
+    logout();
   }, [navigate]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center text-gray-600">
-      Logging out…
-    </div>
-  );
+  return null;
 }
