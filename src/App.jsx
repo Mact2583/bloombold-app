@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/SupabaseAuthContext";
+import { Analytics } from "@vercel/analytics/react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import Login from "@/pages/Login";
@@ -51,6 +52,9 @@ export default function App() {
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/resume-review" replace />} />
         </Routes>
+
+        {/* ✅ Analytics goes HERE */}
+        <Analytics />
       </Router>
     </AuthProvider>
   );
