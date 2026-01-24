@@ -1,169 +1,148 @@
-import React from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
-import { supabase } from "@/lib/supabaseClient";
 import Tooltip from "@/components/Tooltip";
 
-import {
-  LayoutDashboard,
-  FileText,
-  Mic,
-  BookOpen,
-  User,
-  Settings,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  Lock,
-} from "lucide-react";
-
-function DashboardHeaderSkeleton() {
-  return (
-    <div className="flex justify-between items-center mb-8 animate-pulse">
-      <div className="h-8 w-48 rounded bg-muted" />
-      <div className="h-10 w-56 rounded bg-muted" />
-    </div>
-  );
-}
-
-const pageTitleMap = {
-  "/dashboard": "Dashboard",
-  "/dashboard/resume-reviews": "Resume Reviews",
-  "/dashboard/resume": "Resume Builder",
-  "/dashboard/interview": "Interview Prep",
-  "/dashboard/journal": "Career Journal",
-  "/dashboard/mentor": "AI Career Mentor",
-  "/dashboard/profile": "Profile",
-  "/dashboard/settings": "Settings",
-  "/dashboard/billing": "Billing",
-  "/dashboard/upgrade": "Upgrade",
-};
-
 export default function DashboardLayout() {
-  const location = useLocation();
+  const { user, isPro } = useAuth();
   const navigate = useNavigate();
-  const { user, loading, isPro } = useAuth();
 
-  const pageTitle = pageTitleMap[location.pathname] || "Dashboard";
-
-  const navSections = [
-    {
-      label: "CORE",
-      items: [
-        { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/dashboard/resume-reviews", icon: FileText, label: "Resume Reviews" },
-      ],
-    },
-    {
-      label: "TOOLS",
-      items: [
-        { to: "/dashboard/resume", icon: FileText, label: "Resume Builder", proOnly: true },
-        { to: "/dashboard/interview", icon: Mic, label: "Interview Prep", proOnly: true },
-        { to: "/dashboard/journal", icon: BookOpen, label: "Career Journal", proOnly: true },
-        { to: "/dashboard/mentor", icon: Sparkles, label: "AI Career Mentor", proOnly: true },
-      ],
-    },
-    {
-      label: "ACCOUNT",
-      items: [
-        { to: "/dashboard/profile", icon: User, label: "Profile" },
-        { to: "/dashboard/settings", icon: Settings, label: "Settings" },
-        { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
-      ],
-    },
-  ];
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login", { replace: true });
-  };
+  const lockedItem = (label) => (
+    <Tooltip label="Coming soon — included with Pro">
+      <div className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+        <span>{label}</span>
+        <span className="text-xs">🔒</span>
+      </div>
+    </Tooltip>
+  );
 
   return (
-    <div className="flex min-h-screen bg-[#F7F8FD]">
+    <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-gray-200 px-6 py-6 flex flex-col">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-[#7D77DF]">BloomBold</h1>
-          <p className="text-xs text-gray-500 mt-1">Clarity, not templates.</p>
+      <aside className="w-64 border-r bg-white px-4 py-6 flex flex-col">
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold text-[#7D77DF]">
+            BloomBold
+          </h1>
+          <p className="text-xs text-gray-500">
+            Clarity, not templates.
+          </p>
         </div>
 
-        <nav className="flex flex-col gap-6 text-sm">
-          {navSections.map((section) => (
-            <div key={section.label}>
-              <div className="text-xs font-semibold tracking-wide text-gray-400 mb-2">
-                {section.label}
-              </div>
+        {/* CORE */}
+        <nav className="space-y-1">
+          <NavLink
+            to="/dashboard"
+            end
+            className={({ isActive }) =>
+              `block rounded-md px-3 py-2 text-sm ${
+                isActive
+                  ? "bg-[#F2F1FF] text-[#4B46C6]"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
 
-              <div className="flex flex-col gap-1">
-                {section.items.map(({ to, icon: Icon, label, proOnly }) => {
-                  const isLocked = proOnly && !isPro;
-
-                  return (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      className={({ isActive }) =>
-                        `flex items-center justify-between rounded-md px-3 py-2 transition
-                        ${
-                          isActive
-                            ? "bg-[#EEF0FF] text-[#3730A3] font-medium"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`
-                      }
-                    >
-                      <span className="flex items-center gap-3">
-                        <Icon size={18} />
-                        {label}
-                      </span>
-
-                      {isLocked && (
-                        <Tooltip text="Included with Pro — click to preview what’s coming.">
-                          <span className="inline-flex items-center text-gray-400">
-                            <Lock size={16} />
-                          </span>
-                        </Tooltip>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <NavLink
+            to="/dashboard/resume-reviews"
+            className={({ isActive }) =>
+              `block rounded-md px-3 py-2 text-sm ${
+                isActive
+                  ? "bg-[#F2F1FF] text-[#4B46C6]"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`
+            }
+          >
+            Resume Reviews
+          </NavLink>
         </nav>
 
-        <div className="flex-1" />
+        {/* TOOLS */}
+        <div className="mt-6">
+          <p className="px-3 text-xs font-medium text-gray-400 uppercase mb-2">
+            Tools
+          </p>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
+          <div className="space-y-1">
+            {isPro ? (
+              <>
+                <NavLink
+                  to="/dashboard/resume-builder"
+                  className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Resume Builder
+                </NavLink>
+                <NavLink
+                  to="/dashboard/interview-prep"
+                  className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Interview Prep
+                </NavLink>
+                <NavLink
+                  to="/dashboard/career-journal"
+                  className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Career Journal
+                </NavLink>
+                <NavLink
+                  to="/dashboard/ai-mentor"
+                  className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  AI Career Mentor
+                </NavLink>
+              </>
+            ) : (
+              <>
+                {lockedItem("Resume Builder")}
+                {lockedItem("Interview Prep")}
+                {lockedItem("Career Journal")}
+                {lockedItem("AI Career Mentor")}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ACCOUNT */}
+        <div className="mt-auto pt-6">
+          <p className="px-3 text-xs font-medium text-gray-400 uppercase mb-2">
+            Account
+          </p>
+
+          <NavLink
+            to="/dashboard/profile"
+            className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Profile
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/settings"
+            className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Settings
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/billing"
+            className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Billing
+          </NavLink>
+
+          {!isPro && (
+            <button
+              onClick={() => navigate("/dashboard/upgrade")}
+              className="mt-4 w-full rounded-md bg-[#7D77DF] px-4 py-2 text-sm font-medium text-white hover:bg-[#6A64D8]"
+            >
+              Upgrade to Pro
+            </button>
+          )}
+        </div>
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-10">
-        {loading ? (
-          <DashboardHeaderSkeleton />
-        ) : (
-          <header className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-semibold text-gray-900">{pageTitle}</h2>
-
-              {isPro && (
-                <span className="rounded-full bg-[#EEF0FF] text-[#3730A3] text-xs font-semibold px-3 py-1">
-                  Pro
-                </span>
-              )}
-            </div>
-
-            <div className="text-sm text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-md">
-              {user?.email || " "}
-            </div>
-          </header>
-        )}
-
+      <main className="flex-1 p-8">
         <Outlet />
       </main>
     </div>
