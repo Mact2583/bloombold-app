@@ -8,6 +8,7 @@ import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Logout from "@/pages/Logout";
 import ResumeReview from "@/pages/ResumeReview";
+import UpgradeSuccess from "@/pages/UpgradeSuccess";
 
 // Dashboard layout + pages
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -19,7 +20,7 @@ import Billing from "@/pages/dashboard/Billing";
 import Profile from "@/pages/dashboard/Profile";
 import Settings from "@/pages/dashboard/Settings";
 
-// “Tools / Coming soon” pages (make sure these files exist)
+// Tools / Coming soon
 import Resume from "@/pages/dashboard/Resume";
 import Interview from "@/pages/dashboard/Interview";
 import Journal from "@/pages/dashboard/Journal";
@@ -38,8 +39,9 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/resume-review" element={<ResumeReview />} />
+          <Route path="/upgrade/success" element={<UpgradeSuccess />} />
 
-          {/* Protected dashboard (ALL child routes live here) */}
+          {/* Protected dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -67,7 +69,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/resume-review" replace />} />
         </Routes>
 
-        {/* Vercel Analytics should be rendered once, outside Routes is fine */}
         <Analytics />
       </Router>
     </AuthProvider>
