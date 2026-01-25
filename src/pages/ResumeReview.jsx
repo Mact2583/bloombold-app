@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -128,15 +128,18 @@ export default function ResumeReview() {
               </li>
             </ul>
 
-            <div className="mt-4 rounded-lg bg-gray-50 p-3">
-              <p className="text-sm text-gray-700">
-                <span className="font-medium text-gray-900">
-                  If you decide to go Pro later:
-                </span>{" "}
-                you’ll unlock review history, version comparison, and exports —
-                so your improvements compound instead of resetting.
-              </p>
-            </div>
+            {/* 💸 Pro-aware note (hidden for Pro users) */}
+            {!profile?.is_pro && (
+              <div className="mt-4 rounded-lg bg-gray-50 p-3">
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium text-gray-900">
+                    If you decide to go Pro later:
+                  </span>{" "}
+                  you’ll unlock review history, version comparison, and exports —
+                  so your improvements compound instead of resetting.
+                </p>
+              </div>
+            )}
 
             <p className="mt-4 text-sm italic text-gray-600">
               Think of this as career infrastructure, not a prompt.
