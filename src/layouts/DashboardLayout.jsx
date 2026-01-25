@@ -1,5 +1,4 @@
 import { Outlet, Navigate, useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 const BRAND_PRIMARY =
@@ -9,24 +8,14 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
 
-  // Wait for auth to resolve
   if (loading) return null;
-
-  // Protect dashboard routes
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <div className="min-h-screen flex bg-gray-50">
       {/* ================= Sidebar ================= */}
       <aside className="w-64 border-r bg-white flex flex-col">
-        {/* ----- Top section ----- */}
+        {/* Top */}
         <div>
           <div className="p-6">
             <h1 className="text-xl font-semibold text-[#5B5BEA]">
@@ -41,7 +30,7 @@ export default function DashboardLayout() {
             <NavItem label="Dashboard" onClick={() => navigate("/dashboard")} />
             <NavItem
               label="Resume Reviews"
-              onClick={() => navigate("/dashboard/reviews")}
+              onClick={() => navigate("/dashboard/resume-reviews")}
             />
 
             <div className="pt-4 text-xs text-muted-foreground uppercase">
@@ -50,7 +39,7 @@ export default function DashboardLayout() {
 
             {profile?.is_pro ? (
               <>
-                <NavItem label="Resume Builder" onClick={() => navigate("/dashboard/builder")} />
+                <NavItem label="Resume Builder" onClick={() => navigate("/dashboard/resume")} />
                 <NavItem label="Interview Prep" onClick={() => navigate("/dashboard/interview")} />
                 <NavItem label="Career Journal" onClick={() => navigate("/dashboard/journal")} />
                 <NavItem label="AI Career Mentor" onClick={() => navigate("/dashboard/mentor")} />
@@ -66,21 +55,19 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        {/* ----- Account section (ALWAYS visible) ----- */}
+        {/* Account — ALWAYS VISIBLE */}
         <div className="mt-auto p-4 border-t space-y-2">
           <NavItem label="Profile" onClick={() => navigate("/dashboard/profile")} />
           <NavItem label="Settings" onClick={() => navigate("/dashboard/settings")} />
           <NavItem label="Billing" onClick={() => navigate("/dashboard/billing")} />
 
-          {/* 🔒 LOG OUT — guaranteed visible */}
-          <button
-            onClick={handleLogout}
-            className="w-full text-left text-sm text-red-600 hover:underline mt-2"
-          >
-            Log out
-          </button>
+          {/* ✅ Route-based logout */}
+          <NavItem
+            label="Log out"
+            onClick={() => navigate("/logout")}
+            className="text-red-600"
+          />
 
-          {/* Upgrade CTA — last */}
           {!profile?.is_pro && (
             <button
               onClick={() => navigate("/dashboard/upgrade")}
@@ -92,7 +79,7 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* ================= Main Content ================= */}
+      {/* ================= Main ================= */}
       <main className="flex-1 p-8 overflow-y-auto">
         <Outlet />
       </main>
@@ -102,11 +89,11 @@ export default function DashboardLayout() {
 
 /* ================= Helpers ================= */
 
-function NavItem({ label, onClick }) {
+function NavItem({ label, onClick, className = "" }) {
   return (
     <button
       onClick={onClick}
-      className="block w-full text-left px-2 py-2 rounded hover:bg-gray-100"
+      className={`block w-full text-left px-2 py-2 rounded hover:bg-gray-100 ${className}`}
     >
       {label}
     </button>
