@@ -9,13 +9,8 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
 
-  // Wait for auth to resolve
   if (loading) return null;
-
-  // Hard guard
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -23,11 +18,11 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="h-screen flex bg-gray-50">
       {/* ================= Sidebar ================= */}
       <aside className="w-64 border-r bg-white flex flex-col">
-        {/* ----- TOP (navigation) ----- */}
-        <div className="flex-1">
+        {/* 🔑 Scrollable content */}
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6">
             <h1 className="text-xl font-semibold text-[#5B5BEA]">
               BloomBold
@@ -37,7 +32,7 @@ export default function DashboardLayout() {
             </p>
           </div>
 
-          <nav className="px-4 space-y-1 text-sm">
+          <nav className="px-4 space-y-1 text-sm pb-6">
             <NavItem label="Dashboard" onClick={() => navigate("/dashboard")} />
             <NavItem
               label="Resume Reviews"
@@ -66,13 +61,12 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        {/* ----- BOTTOM (ACCOUNT — AUTH ONLY) ----- */}
-        <div className="border-t p-4 space-y-2">
+        {/* 🔒 Sticky footer — ALWAYS visible */}
+        <div className="border-t p-4 space-y-2 bg-white">
           <NavItem label="Profile" onClick={() => navigate("/dashboard/profile")} />
           <NavItem label="Settings" onClick={() => navigate("/dashboard/settings")} />
           <NavItem label="Billing" onClick={() => navigate("/dashboard/billing")} />
 
-          {/* 🔒 LOGOUT — AUTH ONLY, NEVER PROFILE-DEPENDENT */}
           <button
             onClick={handleLogout}
             className="w-full text-left text-sm text-red-600 hover:underline pt-2"
@@ -80,7 +74,6 @@ export default function DashboardLayout() {
             Log out
           </button>
 
-          {/* Upgrade CTA — subscription only */}
           {!profile?.is_pro && (
             <button
               onClick={() => navigate("/dashboard/upgrade")}
@@ -93,7 +86,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* ================= Main ================= */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto p-8">
         <Outlet />
       </main>
     </div>
