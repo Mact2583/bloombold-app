@@ -2,9 +2,6 @@ import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/SupabaseAuthContext";
 
-/* =====================================================
-   Brand constants
-===================================================== */
 const BRAND_PRIMARY =
   "bg-[#5B5BEA] hover:bg-[#4F4FD8] text-white";
 
@@ -15,7 +12,7 @@ export default function DashboardLayout() {
   // Wait for auth to resolve
   if (loading) return null;
 
-  // Protect dashboard routes
+  // Hard guard
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -27,9 +24,10 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* ===== Sidebar ===== */}
-      <aside className="w-64 border-r bg-white flex flex-col justify-between">
-        <div>
+      {/* ================= Sidebar ================= */}
+      <aside className="w-64 border-r bg-white flex flex-col">
+        {/* ----- TOP (navigation) ----- */}
+        <div className="flex-1">
           <div className="p-6">
             <h1 className="text-xl font-semibold text-[#5B5BEA]">
               BloomBold
@@ -68,12 +66,13 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        {/* ===== Account ===== */}
-        <div className="p-4 border-t space-y-2">
+        {/* ----- BOTTOM (ACCOUNT — AUTH ONLY) ----- */}
+        <div className="border-t p-4 space-y-2">
           <NavItem label="Profile" onClick={() => navigate("/dashboard/profile")} />
           <NavItem label="Settings" onClick={() => navigate("/dashboard/settings")} />
           <NavItem label="Billing" onClick={() => navigate("/dashboard/billing")} />
 
+          {/* 🔒 LOGOUT — AUTH ONLY, NEVER PROFILE-DEPENDENT */}
           <button
             onClick={handleLogout}
             className="w-full text-left text-sm text-red-600 hover:underline pt-2"
@@ -81,6 +80,7 @@ export default function DashboardLayout() {
             Log out
           </button>
 
+          {/* Upgrade CTA — subscription only */}
           {!profile?.is_pro && (
             <button
               onClick={() => navigate("/dashboard/upgrade")}
@@ -92,18 +92,15 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* ===== Main content ===== */}
+      {/* ================= Main ================= */}
       <main className="flex-1 p-8 overflow-y-auto">
-        {/* 🔑 THIS MUST EXIST */}
         <Outlet />
       </main>
     </div>
   );
 }
 
-/* =====================================================
-   Helpers
-===================================================== */
+/* ================= Helpers ================= */
 
 function NavItem({ label, onClick }) {
   return (
