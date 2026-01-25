@@ -9,8 +9,13 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
 
+  // Wait for auth to resolve
   if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+
+  // Protect dashboard routes
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -18,11 +23,11 @@ export default function DashboardLayout() {
   };
 
   return (
-    <>
+    <div className="min-h-screen flex bg-gray-50">
       {/* ================= Sidebar ================= */}
-      <aside className="fixed left-0 top-0 h-screen w-64 border-r bg-white z-40 flex flex-col">
-        {/* Scrollable nav */}
-        <div className="flex-1 overflow-y-auto">
+      <aside className="w-64 border-r bg-white flex flex-col">
+        {/* ----- Top section ----- */}
+        <div>
           <div className="p-6">
             <h1 className="text-xl font-semibold text-[#5B5BEA]">
               BloomBold
@@ -32,7 +37,7 @@ export default function DashboardLayout() {
             </p>
           </div>
 
-          <nav className="px-4 space-y-1 text-sm pb-20">
+          <nav className="px-4 space-y-1 text-sm">
             <NavItem label="Dashboard" onClick={() => navigate("/dashboard")} />
             <NavItem
               label="Resume Reviews"
@@ -61,23 +66,25 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        {/* 🔒 PINNED ACCOUNT ACTIONS */}
-        <div className="border-t p-4 bg-white">
+        {/* ----- Account section (ALWAYS visible) ----- */}
+        <div className="mt-auto p-4 border-t space-y-2">
           <NavItem label="Profile" onClick={() => navigate("/dashboard/profile")} />
           <NavItem label="Settings" onClick={() => navigate("/dashboard/settings")} />
           <NavItem label="Billing" onClick={() => navigate("/dashboard/billing")} />
 
+          {/* 🔒 LOG OUT — guaranteed visible */}
           <button
             onClick={handleLogout}
-            className="w-full text-left text-sm text-red-600 hover:underline pt-2"
+            className="w-full text-left text-sm text-red-600 hover:underline mt-2"
           >
             Log out
           </button>
 
+          {/* Upgrade CTA — last */}
           {!profile?.is_pro && (
             <button
               onClick={() => navigate("/dashboard/upgrade")}
-              className={`w-full mt-3 rounded-md py-2 text-sm font-medium transition ${BRAND_PRIMARY}`}
+              className={`w-full mt-4 rounded-md py-2 text-sm font-medium transition ${BRAND_PRIMARY}`}
             >
               Upgrade to Pro
             </button>
@@ -86,10 +93,10 @@ export default function DashboardLayout() {
       </aside>
 
       {/* ================= Main Content ================= */}
-      <main className="ml-64 min-h-screen bg-gray-50 p-8">
+      <main className="flex-1 p-8 overflow-y-auto">
         <Outlet />
       </main>
-    </>
+    </div>
   );
 }
 
