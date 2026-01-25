@@ -90,6 +90,61 @@ export default function ResumeReview() {
         </p>
       </div>
 
+      {/* 🔍 Product clarity: How BloomBold is different */}
+      <section className="rounded-xl border bg-white p-5">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-700">
+            <span className="text-sm font-semibold">i</span>
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-gray-900">
+              How BloomBold is different
+            </h2>
+
+            <p className="mt-2 text-sm text-gray-700">
+              <span className="font-medium text-gray-900">
+                This isn’t a one-off AI response.
+              </span>{" "}
+              BloomBold is built for ongoing career work — not just quick edits.
+            </p>
+
+            <ul className="mt-3 space-y-2 text-sm text-gray-700">
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+                <span>Your feedback is saved so you can refine over time</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+                <span>
+                  Reviews build on past context instead of starting from scratch
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+                <span>
+                  Guidance reflects hiring patterns, not just wording suggestions
+                </span>
+              </li>
+            </ul>
+
+            <div className="mt-4 rounded-lg bg-gray-50 p-3">
+              <p className="text-sm text-gray-700">
+                <span className="font-medium text-gray-900">
+                  If you decide to go Pro later:
+                </span>{" "}
+                you’ll unlock review history, version comparison, and exports —
+                so your improvements compound instead of resetting.
+              </p>
+            </div>
+
+            <p className="mt-4 text-sm italic text-gray-600">
+              Think of this as career infrastructure, not a prompt.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Error */}
       {error && (
         <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
