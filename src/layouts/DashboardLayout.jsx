@@ -18,10 +18,10 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <>
       {/* ================= Sidebar ================= */}
-      <aside className="w-64 border-r bg-white flex flex-col">
-        {/* 🔑 Scrollable content */}
+      <aside className="fixed left-0 top-0 h-screen w-64 border-r bg-white z-40 flex flex-col">
+        {/* Scrollable nav */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-6">
             <h1 className="text-xl font-semibold text-[#5B5BEA]">
@@ -32,7 +32,7 @@ export default function DashboardLayout() {
             </p>
           </div>
 
-          <nav className="px-4 space-y-1 text-sm pb-6">
+          <nav className="px-4 space-y-1 text-sm pb-20">
             <NavItem label="Dashboard" onClick={() => navigate("/dashboard")} />
             <NavItem
               label="Resume Reviews"
@@ -61,8 +61,8 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        {/* 🔒 Sticky footer — ALWAYS visible */}
-        <div className="border-t p-4 space-y-2 bg-white">
+        {/* 🔒 PINNED ACCOUNT ACTIONS */}
+        <div className="border-t p-4 bg-white">
           <NavItem label="Profile" onClick={() => navigate("/dashboard/profile")} />
           <NavItem label="Settings" onClick={() => navigate("/dashboard/settings")} />
           <NavItem label="Billing" onClick={() => navigate("/dashboard/billing")} />
@@ -85,11 +85,11 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      {/* ================= Main ================= */}
-      <main className="flex-1 overflow-y-auto p-8">
+      {/* ================= Main Content ================= */}
+      <main className="ml-64 min-h-screen bg-gray-50 p-8">
         <Outlet />
       </main>
-    </div>
+    </>
   );
 }
 
