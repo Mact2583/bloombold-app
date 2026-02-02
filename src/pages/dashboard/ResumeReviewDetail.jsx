@@ -199,6 +199,10 @@ export default function ResumeReviewDetail() {
           ))}
       </div>
 
+      <pre className="text-xs bg-gray-100 p-3 rounded">
+         {JSON.stringify(review.results, null, 2)}
+      </pre>
+
       {/* Actions */}
       <div className="flex flex-wrap gap-3 pt-4">
         <button
