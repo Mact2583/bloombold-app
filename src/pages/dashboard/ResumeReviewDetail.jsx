@@ -27,7 +27,7 @@ export default function ResumeReviewDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading || !user) return;
 
     let active = true;
 
