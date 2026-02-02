@@ -176,16 +176,17 @@ export default function ResumeReviewDetail() {
       </div>
 
       {/* Results */}
-      {!review.results ? (
-        <div className="rounded-md border p-6 bg-muted/40 text-sm text-muted-foreground">
-          Your review is being prepared.
-          <br />
-          Please refresh in a moment.
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {sectionOrder
-            .filter((key) => review.results?.[key])
+      <div className="space-y-6">
+        {!review.results ? (
+          <div className="rounded-lg border p-6 text-sm text-gray-600">
+            <p className="font-medium">Your review is being prepared.</p>
+            <p className="text-gray-500 mt-1">
+              This usually takes under a minute. Please refresh shortly.
+            </p>
+          </div>
+        ) : (
+          sectionOrder
+            .filter((key) => review.results[key])
             .map((key) => (
               <div
                 key={key}
@@ -203,13 +204,9 @@ export default function ResumeReviewDetail() {
                   {review.results[key]}
                 </p>
               </div>
-            ))}
-        </div>
-      )}
-
-      <pre className="text-xs bg-gray-100 p-3 rounded">
-         {JSON.stringify(review.results, null, 2)}
-      </pre>
+            ))
+        )}
+      </div>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-3 pt-4">
