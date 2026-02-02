@@ -80,7 +80,7 @@ export default function ResumeReviewDetail() {
     return () => {
       active = false;
     };
-  }, [id, user]);
+  }, [id, user, authLoading]);
 
   /* ──────────────────────────────
      AUTH GATE ONLY
@@ -145,7 +145,26 @@ export default function ResumeReviewDetail() {
     );
   }
 
-  return (
+    // 🚦 Section ordering & labels (display only)
+  const sectionOrder = [
+    "overall_impression",
+    "strengths",
+    "fix_first",
+    "gaps",
+    "ats_tips",
+    "interview_readiness",
+  ];
+
+  const sectionLabels = {
+    overall_impression: "Overall impression",
+    strengths: "What’s working",
+    fix_first: "Priority fixes",
+    gaps: "Timeline & clarity",
+    ats_tips: "ATS & formatting",
+    interview_readiness: "Interview readiness",
+  };
+
+    return (
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Header */}
       <div className="space-y-1">
@@ -158,21 +177,26 @@ export default function ResumeReviewDetail() {
 
       {/* Results */}
       <div className="space-y-6">
-        {Object.entries(review.results || {}).map(
-          ([section, content]) => (
+        {sectionOrder
+          .filter((key) => review.results?.[key])
+          .map((key) => (
             <div
-              key={section}
-              className="rounded-lg border bg-background p-6 shadow-sm space-y-2"
+              key={key}
+              className={`rounded-lg border p-6 shadow-sm space-y-3 ${
+                key === "fix_first"
+                  ? "bg-amber-50 border-amber-200"
+                  : "bg-background"
+              }`}
             >
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
-                {section.replace(/_/g, " ")}
+              <h2 className="text-sm font-semibold tracking-wide text-gray-700">
+                {sectionLabels[key]}
               </h2>
+
               <p className="text-gray-800 whitespace-pre-line">
-                {content}
+                {review.results[key]}
               </p>
             </div>
-          )
-        )}
+          ))}
       </div>
 
       {/* Actions */}
@@ -201,5 +225,5 @@ export default function ResumeReviewDetail() {
         </p>
       )}
     </div>
-  );
-}
+    );
+    }
