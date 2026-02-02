@@ -12,33 +12,32 @@ export default function ResumeReview() {
   const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
-    if (!resumeText.trim()) return;
+  if (!resumeText.trim()) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      const { data, error } = await supabase
-        .from("resume_reviews")
-        .insert([
-          {
-            user_id: user?.id ?? null,
-            resume_text: resumeText,
-          },
-        ])
-        .select()
-        .single();
+  try {
+    const { data, error } = await supabase
+      .from("resume_reviews")
+      .insert({
+        user_id: user?.id ?? null,
+        resume_text: resumeText,
+      })
+      .select("id")
+      .single();
 
-      if (error) throw error;
+    if (error) throw error;
+    if (!data?.id) throw new Error("No review ID returned");
 
-      navigate(`/review/${data.id}`);
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigate(`/dashboard/resume-reviews/${data.id}`);
+  } catch (err) {
+    console.error(err);
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
@@ -86,8 +85,6 @@ export default function ResumeReview() {
       <p className="text-xs text-muted-foreground mt-2 italic">
         Your resume text is not stored or shared — it’s used only to generate your feedback.
       </p>
-
-
 
       {/* CTA */}
       <div className="space-y-2">
