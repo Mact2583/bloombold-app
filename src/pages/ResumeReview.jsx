@@ -83,6 +83,10 @@ export default function ResumeReview() {
         />
       </div>
 
+      <p className="text-xs text-muted-foreground mt-2">
+        Your resume text is not stored or shared. It’s used only to generate your feedback.
+      </p>
+
       {/* CTA */}
       <div className="space-y-2">
         <button
