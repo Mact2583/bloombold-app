@@ -32,10 +32,8 @@ export default function ResumeReviewDetail() {
     let active = true;
 
     const loadReview = async () => {
-      // Only show loading the first time
-      setLoading((prev) => (prev ? true : false));
+      setLoading(true);
 
-      // 1️⃣ Load requested review
       const { data: reviewData, error: reviewError } = await supabase
         .from("resume_reviews")
         .select("id, created_at, target_role, results")
@@ -46,14 +44,12 @@ export default function ResumeReviewDetail() {
       if (!active) return;
 
       if (reviewError) {
-        console.error("Failed to load review:", reviewError);
-        setReview(null);
+        console.error(reviewError);
         setLoading(false);
         return;
       }
 
-      // 2️⃣ Load most recent review ID
-      const { data: latest, error: latestError } = await supabase
+      const { data: latest } = await supabase
         .from("resume_reviews")
         .select("id")
         .eq("user_id", user.id)
@@ -61,55 +57,34 @@ export default function ResumeReviewDetail() {
         .limit(1)
         .maybeSingle();
 
-      if (!active) return;
-
-      if (latestError) {
-        console.error("Failed to load latest review:", latestError);
-      }
-
-      setReview(reviewData || null);
-      setIsMostRecent(
-        Boolean(reviewData && latest && reviewData.id === latest.id)
-      );
-
+      setReview(reviewData);
+      setIsMostRecent(Boolean(reviewData && latest && reviewData.id === latest.id));
       setLoading(false);
     };
 
     loadReview();
-
     return () => {
       active = false;
     };
   }, [id, user, authLoading]);
 
-  /* ──────────────────────────────
-     AUTH GATE ONLY
-     ────────────────────────────── */
-  if (authLoading) {
+  /* ───── Guards ───── */
+
+  if (authLoading || loading) {
     return <ReviewLoadingSkeleton />;
   }
 
-  /* ⏳ Data loading */
-  if (loading) {
-    return <ReviewLoadingSkeleton />;
-  }
-
-  // 🔐 Not logged in (safety fallback)
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 🚫 Review not found
   if (!review) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-4">
         <h1 className="text-xl font-semibold">Review not found</h1>
-        <p className="text-gray-600">
-          This resume review may no longer be available.
-        </p>
         <button
           onClick={() => navigate("/dashboard")}
-          className="rounded-md border px-5 py-2 text-sm"
+          className="rounded-md border px-4 py-2 text-sm"
         >
           Back to dashboard
         </button>
@@ -117,35 +92,34 @@ export default function ResumeReviewDetail() {
     );
   }
 
-  // 🚫 Free user accessing older review
   if (!isPro && !isMostRecent) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-4">
         <h1 className="text-xl font-semibold">Review unavailable</h1>
-        <p className="text-gray-600">
-          Free accounts can view their most recent resume review.
-        </p>
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="rounded-md border px-5 py-2 text-sm"
-          >
-            View latest review
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard/upgrade")}
-            className="rounded-md bg-black px-5 py-2 text-sm text-white hover:bg-gray-900"
-          >
-            Upgrade to Pro
-          </button>
-        </div>
+        <button
+          onClick={() => navigate("/dashboard/upgrade")}
+          className="rounded-md bg-black px-4 py-2 text-sm text-white"
+        >
+          Upgrade to Pro
+        </button>
       </div>
     );
   }
 
-    // 🚦 Section ordering & labels (display only)
+  // ✅ CRITICAL STABILITY GUARD
+  if (!review.results || typeof review.results !== "object") {
+    return (
+      <div className="max-w-3xl mx-auto space-y-4">
+        <h1 className="text-2xl font-semibold">Resume Review</h1>
+        <p className="text-sm text-gray-500">
+          Your review is being prepared. This usually takes under a minute.
+        </p>
+      </div>
+    );
+  }
+
+  /* ───── Display config ───── */
+
   const sectionOrder = [
     "overall_impression",
     "strengths",
@@ -164,75 +138,45 @@ export default function ResumeReviewDetail() {
     interview_readiness: "Interview readiness",
   };
 
-    return (
+  return (
     <div className="max-w-3xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="space-y-1">
+      <div>
         <h1 className="text-2xl font-semibold">Resume Review</h1>
         <p className="text-sm text-gray-500">
           {new Date(review.created_at).toLocaleString()}
-          {review.target_role && ` • ${review.target_role}`}
         </p>
       </div>
 
-      {/* Results */}
-      <div className="space-y-6">
-        {!review.results ? (
-          <div className="rounded-lg border p-6 text-sm text-gray-600">
-            <p className="font-medium">Your review is being prepared.</p>
-            <p className="text-gray-500 mt-1">
-              This usually takes under a minute. Please refresh shortly.
-            </p>
-          </div>
-        ) : (
-          sectionOrder
-            .filter((key) => review.results[key])
-            .map((key) => (
-              <div
-                key={key}
-                className={`rounded-lg border p-6 shadow-sm space-y-3 ${
-                  key === "fix_first"
-                    ? "bg-amber-50 border-amber-200"
-                    : "bg-background"
-                }`}
-              >
-                <h2 className="text-sm font-semibold tracking-wide text-gray-700">
-                  {sectionLabels[key]}
-                </h2>
-
-                <p className="text-gray-800 whitespace-pre-line">
-                  {review.results[key]}
-                </p>
-              </div>
-            ))
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-wrap gap-3 pt-4">
-        <button
-          onClick={() => navigate("/resume-review")}
-          className="rounded-md border px-5 py-2 text-sm"
+      {sectionOrder.map((key) => (
+        <div
+          key={key}
+          className={`rounded-lg border p-6 space-y-2 ${
+            key === "fix_first"
+              ? "bg-amber-50 border-amber-200"
+              : "bg-background"
+          }`}
         >
-          Run another review
-        </button>
+          <h2 className="text-sm font-semibold text-gray-700">
+            {sectionLabels[key]}
+          </h2>
+          <p className="text-gray-800 whitespace-pre-line">
+            {review.results[key]}
+          </p>
+        </div>
+      ))}
 
-        {isPro && (
-          <button
-            onClick={() => navigate("/dashboard/resume-reviews")}
-            className="rounded-md border px-5 py-2 text-sm"
-          >
-            View full history
-          </button>
-        )}
-      </div>
+      <button
+        onClick={() => navigate("/resume-review")}
+        className="rounded-md border px-4 py-2 text-sm"
+      >
+        Run another review
+      </button>
 
       {!isPro && (
         <p className="text-sm text-gray-500">
-          Your most recent review is saved here.
-          Upgrade to revisit past feedback and export PDFs.
+          Your most recent review is saved here. Upgrade to revisit past feedback.
         </p>
       )}
     </div>
-    );
-  }
+  );
+}
