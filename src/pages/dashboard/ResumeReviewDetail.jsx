@@ -176,29 +176,37 @@ export default function ResumeReviewDetail() {
       </div>
 
       {/* Results */}
-      <div className="space-y-6">
-        {sectionOrder
-          .filter((key) => review.results?.[key])
-          .map((key) => (
-            <div
-              key={key}
-              className={`rounded-lg border p-6 shadow-sm space-y-3 ${
-                key === "fix_first"
-                  ? "bg-amber-50 border-amber-200"
-                  : "bg-background"
-              }`}
-            >
-              <h2 className="text-sm font-semibold tracking-wide text-gray-700">
-                {sectionLabels[key]}
-              </h2>
+      {!review.results ? (
+        <div className="rounded-md border p-6 bg-muted/40 text-sm text-muted-foreground">
+          Your review is being prepared.
+          <br />
+          Please refresh in a moment.
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {sectionOrder
+            .filter((key) => review.results?.[key])
+            .map((key) => (
+              <div
+                key={key}
+                className={`rounded-lg border p-6 shadow-sm space-y-3 ${
+                  key === "fix_first"
+                    ? "bg-amber-50 border-amber-200"
+                    : "bg-background"
+                }`}
+              >
+                <h2 className="text-sm font-semibold tracking-wide text-gray-700">
+                  {sectionLabels[key]}
+                </h2>
 
-              <p className="text-gray-800 whitespace-pre-line">
-                {review.results[key]}
-              </p>
-            </div>
-          ))}
-      </div>
-      
+                <p className="text-gray-800 whitespace-pre-line">
+                  {review.results[key]}
+                </p>
+              </div>
+            ))}
+        </div>
+      )}
+
       <pre className="text-xs bg-gray-100 p-3 rounded">
          {JSON.stringify(review.results, null, 2)}
       </pre>
