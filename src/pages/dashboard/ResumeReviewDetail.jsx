@@ -198,7 +198,7 @@ export default function ResumeReviewDetail() {
             </div>
           ))}
       </div>
-
+      
       <pre className="text-xs bg-gray-100 p-3 rounded">
          {JSON.stringify(review.results, null, 2)}
       </pre>
