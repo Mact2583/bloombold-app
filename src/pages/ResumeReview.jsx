@@ -5,39 +5,37 @@ import { useAuth } from "@/contexts/SupabaseAuthContext";
 
 export default function ResumeReview() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuth(); // not strictly required for invoke, but fine to keep
 
   const [resumeText, setResumeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
-  if (!resumeText.trim()) return;
+    if (!resumeText.trim()) return;
 
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const { data, error } = await supabase
-      .from("resume_reviews")
-      .insert({
-        user_id: user?.id ?? null,
-        resume_text: resumeText,
-      })
-      .select("id")
-      .single();
+    try {
+      // ✅ IMPORTANT:
+      // Do NOT insert directly into resume_reviews here.
+      // The Edge Function owns creating the row + writing results.
+      const { data, error } = await supabase.functions.invoke("analyze-resume", {
+        body: { resumeText },
+      });
 
-    if (error) throw error;
-    if (!data?.id) throw new Error("No review ID returned");
+      if (error) throw error;
+      if (!data?.reviewId) throw new Error("No reviewId returned");
 
-    navigate(`/dashboard/resume-reviews/${data.id}`);
-  } catch (err) {
-    console.error(err);
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+      navigate(`/dashboard/resume-reviews/${data.reviewId}`);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
@@ -67,9 +65,7 @@ export default function ResumeReview() {
 
       {/* Resume input */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">
-          Paste your resume
-        </label>
+        <label className="text-sm font-medium">Paste your resume</label>
         <p className="text-xs text-muted-foreground">
           No formatting required. Résumés of any length are fine.
         </p>
@@ -83,7 +79,8 @@ export default function ResumeReview() {
       </div>
 
       <p className="text-xs text-muted-foreground mt-2 italic">
-        Your resume text is not stored or shared — it’s used only to generate your feedback.
+        Your resume text is not stored or shared — it’s used only to generate your
+        feedback.
       </p>
 
       {/* CTA */}
@@ -100,9 +97,7 @@ export default function ResumeReview() {
           Free • results usually appear in under a minute
         </p>
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
       {/* Trust anchors */}
